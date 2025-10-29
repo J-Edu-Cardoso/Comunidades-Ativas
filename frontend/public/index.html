@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunidade Ativa - Principal</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="https://www.google.com/favicon.ico" type="image/logo.png">
+    <link rel="shortcut icon" href="https://www.google.com/favicon.ico" type="image/x-icon">
+    <!-- Para teste temporário - remover depois -->
+    
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- API Configuration -->
+    <script>
+        window.API_BASE_URL = window.location.origin + '/api';
+        console.log('🔧 Index API_BASE_URL configurada:', window.API_BASE_URL);
+        console.log('🌐 Window location:', window.location.origin);
+    </script>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <img src="images/logo.jpg" alt="Comunidade Ativa">
+                <span>Comunidades Ativas</span>
+            </a>
+            
+            <!-- Botão do menu móvel -->
+            <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            
+            <!-- Overlay para o menu móvel -->
+            <div class="menu-overlay" id="menuOverlay"></div>
+            
+            <!-- Links de navegação -->
+            <div class="nav-links" id="navLinks">
+                <ul>
+                    <li><a href="#home" class="nav-link active">Início</a></li>
+                    <li><a href="#about" class="nav-link">Sobre</a></li>
+                    <li><a href="#features" class="nav-link">Recursos</a></li>
+                    <li><a href="#ideas" class="nav-link">Ideias</a></li>
+                    <li><a href="#contact" class="nav-link">Contato</a></li>
+                    <li><a href="login.html" class="nav-link">Login</a></li>
+                </ul>
+                
+                <!-- Botões de autenticação -->
+                <div class="auth-buttons" id="authButtons">
+                    <a href="#" class="btn btn-outline" id="loginBtn" onclick="showLogin(); return false;">Entrar</a>
+                    <a href="#" class="btn btn-primary" id="registerBtn" onclick="showRegister(); return false;">Cadastrar</a>
+                    
+                    <!-- Menu do usuário (visível quando logado) -->
+                    <div class="user-menu" id="userMenu" style="display: none;">
+                        <div class="user-info">
+                            <img id="userAvatar" src="" alt="User" class="user-avatar">
+                            <span id="userName"></span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="user-dropdown">
+                            <a href="profile.html"><i class="fas fa-user"></i> Meu Perfil</a>
+                            <a href="Profile.html#ideas"><i class="fas fa-lightbulb"></i> Minhas Ideias</a>
+                            <a href="login.html" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Transforme ideias em realidade</h1>
+                <p>Participe da nossa comunidade e contribua para melhorar nossa cidade com suas ideias e sugestões.</p>
+                <div class="hero-buttons">
+                    <a href="#ideas" class="btn btn-primary">Ver Ideias</a>
+                    <a href="nova-ideia.html" class="btn btn-outline">Enviar Ideia</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="images/logo.jpg" alt="Ilustração de pessoas colaborando">
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section" id="about">
+        <div class="container">
+            <div class="section-header">
+                <h1>Sobre Nós</h1><hr><br>
+                <h2>Comunidades Ativas <br> "Sua Voz, Nossa Cidade”</h2>
+                    
+                    <h3>propõe a criação de um ambiente digital 
+                    colaborativo que concentre, organize e dê 
+                    visibilidade às manifestações da população 
+                    sobre melhorias locais. A proposta é oferecer 
+                    um espaço único onde moradores possam registrar 
+                    demandas e ideias relativas ao bairro, permitindo 
+                    que essas informações cheguem, de forma estruturada,
+                    a atores responsáveis gestão pública, conselhos,
+                    associações e iniciativas privadas de interesse público</h3>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Recursos</h2>
+                <p>Descubra como nossa plataforma pode ajudar a transformar sua cidade</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-comments"></i>
+                    <h3>Discussões Abertas</h3>
+                    <p>Participe de discussões sobre os mais diversos temas relacionados à melhoria da cidade.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-lightbulb"></i>
+                    <h3>Envie Suas Ideias</h3>
+                    <p>Compartilhe suas ideias e sugestões para melhorar a cidade onde você mora.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-vote-yea"></i>
+                    <h3>Vote nas Melhores</h3>
+                    <p>Dê seu voto nas melhores ideias e ajude a priorizar as que serão implementadas.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-tasks"></i>
+                    <h3>Acompanhe o Progresso</h3>
+                    <p>Saiba em que estágio está cada ideia e acompanhe sua implementação.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ideas Section -->
+    <section class="ideas-section" id="ideas">
+        <div class="container">
+            <div class="section-header">
+                <h2>Ideias Recentes</h2>
+                <p>Descubra as ideias mais recentes da comunidade</p>
+                <div class="ideas-filter">
+                    <select id="categoryFilter" class="filter-select">
+                        <option value="">Todas as categorias</option>
+                        <!-- Categorias serão preenchidas via JavaScript -->
+                    </select>
+                    <button class="btn btn-primary" onclick="window.location.href='nova-ideia.html'">
+                        <i class="fas fa-plus"></i> Nova Ideia
+                    </button>
+                </div>
+            </div>
+            <div class="ideas-grid" id="ideasContainer">
+                <!-- As ideias serão carregadas aqui via JavaScript -->
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Carregando ideias...</p>
+                </div>
+            </div>
+            <div class="load-more">
+                <button id="loadMoreBtn" class="btn btn-outline">Carregar Mais</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section" id="contact">
+        <div class="container">
+            <div class="section-header text-center">
+                <span class="section-subtitle">Fale Conosco</span>
+                <h2 class="section-title">Entre em Contato</h2>
+                <div class="section-divider">
+                    <span></span>
+                    <i class="fas fa-circle"></i>
+                    <span></span>
+                </div>
+                <p class="section-description">Tem alguma dúvida ou sugestão? Nossa equipe está pronta para te atender.</p>
+            </div>
+            
+            <div class="contact-wrapper">
+                <div class="contact-info-wrapper">
+                    <div class="contact-info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="info-content">
+                            <h3>Email</h3>
+                            <p>contato@comunidadeativa.com</p>
+                            <a href="mailto:contato@comunidadeativa.com" class="info-link">Enviar email <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <div class="info-content">
+                            <h3>Telefone</h3>
+                            <p>(11) 9999-9999</p>
+                            <a href="tel:+551199999999" class="info-link">Ligar agora <i class="fas fa-phone"></i></a>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="info-content">
+                            <h3>Endereço</h3>
+                            <p>Av. Paulista, 1000<br>São Paulo - SP, 01310-100</p>
+                            <a href="https://maps.google.com" target="_blank" class="info-link">Ver no mapa <i class="fas fa-map-marker-alt"></i></a>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-social">
+                        <p>Nossas Redes Sociais:</p>
+                        <div class="social-links">
+                            <a href="#" class="social-link" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="social-link" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="contact-form-wrapper">
+                    <form id="contactForm" class="contact-form">
+                        <div class="form-header">
+                            <h3>Envie sua mensagem</h3>
+                            <p>Preencha o formulário abaixo e entraremos em contato o mais breve possível.</p>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="name">Seu Nome</label>
+                                <input type="text" id="name" required>
+                                <i class="fas fa-user"></i>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email">Seu Email</label>
+                                <input type="email" id="email" required>
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="subject">Assunto</label>
+                            <input type="text" id="subject" required>
+                            <i class="fas fa-tag"></i>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message">Sua Mensagem</label>
+                            <textarea id="message" rows="5" required></textarea>
+                            <i class="fas fa-comment"></i>
+                        </div>
+                        
+                        <div class="form-footer">
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <span>Enviar Mensagem</span>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="images/logo.jpg" style="width: 200px; height: 200px;" alt="Comunidade Ativa">
+                    <p>Transformando ideias em realidade para uma cidade melhor.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h3>Links Rápidos</h3>
+                    <ul>
+                        <li><a href="#home">Início</a></li>
+                        <li><a href="#about">Sobre Nós</a></li>
+                        <li><a href="#features">Recursos</a></li>
+                        <li><a href="#ideas">Ideias</a></li>
+                        <li><a href="#contact">Contato</a></li>
+                    </ul>
+                </div>
+                <div class="footer-newsletter">
+                    <h3>Newsletter</h3>
+                    <p>Inscreva-se para receber atualizações sobre novas ideias e projetos.</p>
+                    <form id="newsletterForm">
+                        <input type="email" placeholder="Seu email" required>
+                        <button type="submit" class="btn btn-primary">Inscrever</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Comunidade Ativa. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Google Sign-In -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- Scripts principais (carregar em ordem) -->
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/ideas.js"></script>
+    <script src="/js/categories.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/mobile-menu.js"></script>
+    <script src="/js/app.js"></script>
+    
+    <!-- Inicialização -->
+    <script>
+        console.log('🚀 Inicializando aplicação...');
+        
+        // Função para inicializar a aplicação
+        function initializeApp() {
+            console.log('✅ Verificando serviços...');
+            
+            // Configurar navegação
+            setupNavigation();
+            checkSavedUser();
+            
+            // Função para tentar carregar os dados
+            const tryLoadData = (attempts = 0) => {
+                // Limitar o número de tentativas para evitar loop infinito
+                if (attempts > 10) {
+                    console.error('❌ Número máximo de tentativas atingido. Verifique se o serviço de ideias foi carregado corretamente.');
+                    return;
+                }
+                
+                // Verificar se o serviço de ideias está disponível
+                if (window.ideasService && typeof window.ideasService.loadIdeas === 'function') {
+                    console.log('✅ Serviço de ideias carregado com sucesso');
+                    
+                    // Inicializar categorias
+                    if (window.categories && typeof window.categories.loadCategories === 'function') {
+                        window.categories.loadCategories()
+                            .then(() => {
+                                console.log('✅ Categorias carregadas');
+                                // Carregar ideias após as categorias
+                                return window.ideasService.loadIdeas();
+                            })
+                            .then(() => {
+                                console.log('✅ Ideias carregadas');
+                                // Carregar categorias para o filtro, se a função existir
+                                if (typeof loadCategoriesForFilter === 'function') {
+                                    loadCategoriesForFilter();
+                                }
+                            })
+                            .catch(error => {
+                                console.error('❌ Erro ao carregar dados:', error);
+                            });
+                    } else {
+                        console.warn('⚠️ Serviço de categorias não está disponível');
+                        // Tentar carregar apenas as ideias
+                        window.ideasService.loadIdeas().catch(error => {
+                            console.error('❌ Erro ao carregar ideias:', error);
+                        });
+                    }
+                } else {
+                    console.warn(`⚠️ Tentativa ${attempts + 1}/10: Serviço de ideias ainda não está disponível, tentando novamente...`);
+                    // Tentar novamente após um curto atraso
+                    setTimeout(() => tryLoadData(attempts + 1), 1000);
+                }
+            };
+            
+            // Iniciar o processo de carregamento
+            tryLoadData();
+        }
+        
+        // Funções auxiliares
+        function setupNavigation() {
+            // Navbar scroll effect
+            window.addEventListener('scroll', function() {
+                const navbar = document.getElementById('navbar');
+                if (window.scrollY > 50) {
+                    navbar?.classList.add('scrolled');
+                } else {
+                    navbar?.classList.remove('scrolled');
+                }
+            });
+
+            // Configurar autenticação e UI
+            updateAuthUI();
+
+            // Smooth scroll para links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+
+            // Menu mobile
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const navLinks = document.getElementById('navLinks');
+            
+            if (mobileMenuBtn && navLinks) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    navLinks.classList.toggle('active');
+                    this.querySelector('i').classList.toggle('fa-times');
+                    this.querySelector('i').classList.toggle('fa-bars');
+                });
+            }
+        }
+
+        function checkSavedUser() {
+            const user = localStorage.getItem('user');
+            if (user) {
+                try {
+                    const userData = JSON.parse(user);
+                    updateAuthUI(userData);
+                } catch (error) {
+                    console.error('Erro ao analisar dados do usuário:', error);
+                    localStorage.removeItem('user');
+                }
+            }
+        }
+
+        function updateAuthUI(userData) {
+            const user = userData || JSON.parse(localStorage.getItem('user') || '{}');
+            const loginBtn = document.getElementById('loginBtn');
+            const registerBtn = document.getElementById('registerBtn');
+            const userMenu = document.getElementById('userMenu');
+            const userName = document.getElementById('userName');
+            const userAvatar = document.getElementById('userAvatar');
+            const defaultAvatar = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+
+            if (user && user.name) {
+                // Usuário logado
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (registerBtn) registerBtn.style.display = 'none';
+                if (userMenu) userMenu.style.display = 'flex';
+                if (userName) userName.textContent = user.name.split(' ')[0];
+                if (userAvatar) {
+                    userAvatar.src = user.avatar_url || defaultAvatar;
+                    userAvatar.alt = user.name;
+                }
+            } else {
+                // Usuário não logado
+                if (loginBtn) loginBtn.style.display = 'block';
+                if (registerBtn) registerBtn.style.display = 'block';
+                if (userMenu) userMenu.style.display = 'none';
+            }
+        }
+
+        // Funções globais para navegação
+        function showLogin() {
+            const modal = document.getElementById('loginModal');
+            if (modal) modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function showRegister() {
+            const modal = document.getElementById('registerModal');
+            if (modal) modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+        
+        // Inicializar quando o DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            // DOM já está pronto, inicializar imediatamente
+            setTimeout(initializeApp, 0);
+        }
+    </script>
+</body>
+</html>

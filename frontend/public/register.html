@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Comunidades Ativas</title>
+    
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- API Configuration -->
+    <script>
+        window.API_BASE_URL = window.location.origin + '/api';
+        console.log('🔧 Register API_BASE_URL configurada:', window.API_BASE_URL);
+        console.log('🌐 Window location:', window.location.origin);
+    </script>
+
+    <style>
+        :root {
+            --primary-color: #6c86db;
+            --primary-hover: #095283;
+            --text-color: #0b1dc5;
+            --light-gray: #f5f5f5;
+            --gray: #95a5a6;
+            --danger: #e74c3c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #55bde6;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .auth-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .auth-illustration {
+            flex: 1;
+            background: linear-gradient(135deg, #38b3ec, #45c03a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: rgb(25, 51, 199);
+            text-align: center;
+        }
+        
+        .auth-illustration-content {
+            max-width: 500px;
+        }
+        
+        .auth-illustration h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .auth-illustration p {
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        
+        .auth-illustration img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 2rem;
+        }
+        
+        .auth-form-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        
+        .auth-form {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .auth-logo i {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-logo h2 {
+            color: var(--text-color);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-logo p {
+            color: var(--gray);
+            font-size: 0.95rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(108, 134, 219, 0.2);
+            outline: none;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 38px;
+            cursor: pointer;
+            color: var(--gray);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .btn-outline:hover {
+            background-color: rgba(108, 134, 219, 0.1);
+        }
+        
+        .btn-google {
+            background-color: #fff;
+            color: #757575;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-google i {
+            color: #DB4437;
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: var(--gray);
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .divider span {
+            padding: 0 1rem;
+        }
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--gray);
+        }
+        
+        .auth-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .terms {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        
+        .terms a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .terms a:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            color: var(--danger);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        
+        .form-control.error {
+            border-color: var(--danger);
+        }
+        
+        .form-control.error:focus {
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .spinner {
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .password-strength {
+            margin-top: 0.5rem;
+            height: 4px;
+            background-color: #eee;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .password-strength-bar {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+        
+        .password-strength-weak { background-color: #e74c3c; width: 25%; }
+        .password-strength-fair { background-color: #f39c12; width: 50%; }
+        .password-strength-good { background-color: #3498db; width: 75%; }
+        .password-strength-strong { background-color: #2ecc71; width: 100%; }
+        
+        .password-strength-text {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            text-align: right;
+            color: var(--gray);
+        }
+        
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+            }
+            
+            .auth-illustration {
+                padding: 3rem 1.5rem;
+            }
+            
+            .auth-form {
+                padding: 2rem 1.5rem;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+        }
+
+        /* Navigation Styles */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--dark);
+            font-size: 1.5rem;
+            font-weight: 700;
+            transition: var(--transition);
+        }
+
+        .logo i {
+            color: var(--primary);
+            margin-right: 10px;
+            font-size: 1.8rem;
+        }
+
+        .logo:hover {
+            color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Estilos para notificações */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease-in-out;
+            max-width: 90%;
+            width: 350px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background-color: #10B981; /* verde */
+        }
+        
+        .notification.error {
+            background-color: #EF4444; /* vermelho */
+        }
+        
+        .notification.warning {
+            background-color: #F59E0B; /* amarelo */
+            color: #1F2937; /* texto escuro para melhor contraste */
+        }
+        
+        .notification i {
+            font-size: 1.2em;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            padding: 0.5rem;
+            min-width: 150px;
+            margin-top: 0.5rem;
+        }
+
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            color: var(--dark);
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .dropdown-item:hover {
+            background: var(--light-gray);
+            color: var(--primary);
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .mobile-menu-toggle span {
+            width: 25px;
+            height: 3px;
+            background: var(--dark);
+            transition: var(--transition);
+        }
+
+        /* Auth Container Adjustments */
+        .auth-container {
+            display: flex;
+            min-height: 100vh;
+            padding-top: 70px; /* Account for fixed navbar */
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar .container {
+                padding: 0 1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-toggle {
+                display: flex;
+            }
+        }
+
+        .toast {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast-error {
+            background: var(--danger);
+        }
+
+        .toast-success {
+            background: #10b981;
+        }
+
+        .toast-warning {
+            background: #f59e0b;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-users"></i>
+                Comunidade Ativa
+            </a>
+
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="nav-link">Início</a>
+                <a href="index.html#ideas" class="nav-link">Ideias</a>
+                <a href="nova-ideia.html" class="nav-link">Enviar Ideia</a>
+            </div>
+
+            <div id="profileNav" style="display: none;">
+                <a href="Profile.html" class="btn btn-primary">Perfil</a>
+            </div>
+
+            <!-- Auth Buttons -->
+            <div class="auth-buttons" id="authButtons">
+                <button class="btn btn-outline" id="loginBtn" onclick="window.location.href='login.html'">Entrar</button>
+                <button class="btn btn-primary" id="registerBtn">Cadastrar</button>
+            </div>
+
+            <!-- User Menu -->
+            <div class="user-menu" id="userMenu" style="display: none;">
+                <div class="user-info">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #4F46E5; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1rem;">CA</div>
+                    <span class="user-name" id="userName">Usuário</span>
+                </div>
+                <div class="user-dropdown" id="userDropdown">
+                    <a href="Profile.html" class="dropdown-item">
+                        <i class="fas fa-user"></i> Perfil
+                    </a>
+                    <a href="#" class="dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </a>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="auth-container">
+        <div class="auth-illustration">
+            <div class="auth-illustration-content">
+                <h1>Junte-se a nós!</h1>
+                <p>Crie sua conta e comece a contribuir para melhorar nossa comunidade.</p>
+                <div style="width: 500px; height: 300px; background: linear-gradient(135deg, #38b3ec, #45c03a); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold; text-align: center;">
+                    <div>
+                        <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <div>Cadastro</div>
+                        <div style="font-size: 1rem; opacity: 0.9; margin-top: 0.5rem;">Junte-se à comunidade</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="auth-form-container">
+            <form id="registerForm" class="auth-form">
+                <div class="auth-logo">
+                    <i class="fas fa-hands-helping"></i>
+                    <h2>Criar Conta</h2>
+                    <p>Preencha os campos abaixo para se cadastrar</p>
+                </div>
+                
+                <div id="notification" class="notification" style="display: none;"></div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">Nome</label>
+                        <input type="text" id="firstName" class="form-control" placeholder="Seu nome" required>
+                        <div class="error-message" id="firstNameError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lastName">Sobrenome</label>
+                        <input type="text" id="lastName" class="form-control" placeholder="Seu sobrenome" required>
+                        <div class="error-message" id="lastNameError"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" class="form-control" placeholder="seu@email.com" required>
+                    <div class="error-message" id="emailError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                    <i class="far fa-eye password-toggle" id="togglePassword"></i>
+                    <div class="password-strength">
+                        <div class="password-strength-bar" id="passwordStrength"></div>
+                    </div>
+                    <div class="password-strength-text" id="passwordStrengthText"></div>
+                    <div class="error-message" id="passwordError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmar Senha</label>
+                    <input type="password" id="confirmPassword" class="form-control" placeholder="••••••••" required>
+                    <i class="far fa-eye password-toggle" id="toggleConfirmPassword"></i>
+                    <div class="error-message" id="confirmPasswordError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Telefone (Opcional)</label>
+                    <input type="tel" id="phone" class="form-control" placeholder="(00) 00000-0000">
+                    <div class="error-message" id="phoneError"></div>
+                </div>
+                
+                <div class="terms">
+                    Ao se cadastrar, você concorda com nossos <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a>.
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="registerButton">
+                    <span class="btn-text">Criar Conta</span>
+                </button>
+                
+                <div class="divider">
+                    <span>ou</span>
+                </div>
+                
+                <button type="button" class="btn btn-google" id="googleSignIn">
+                    <i class="fab fa-google"></i> Cadastrar com Google
+                </button>
+                
+                <div class="auth-footer">
+                    Já tem uma conta? <a href="login.html">Faça login</a>
+                </div>
+            </form>
+        </div>
+    </div>
+            <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <div class="logo">
+                        <i class="fas fa-hands-helping"></i>
+                        <span>Comunidade Ativa</span>
+                    </div>
+                    <p>Conectando pessoas para construir comunidades melhores através da colaboração e inovação.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link" aria-label="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="LinkedIn">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Links Rápidos</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Início</a></li>
+                        <li><a href="index.html#ideas">Ideias</a></li>
+                        <li><a href="nova-ideia.html">Enviar Ideia</a></li>
+                        <li><a href="#">Sobre Nós</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Contato</h4>
+                    <p><i class="fas fa-envelope"></i> contato@comunidadeativa.com</p>
+                    <p><i class="fas fa-phone"></i> (11) 9999-9999</p>
+                    <p><i class="fas fa-map-marker-alt"></i> São Paulo, Brasil</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Comunidade Ativa. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+
+    <script>
+        // Inicialização dos componentes da página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle de visibilidade da senha
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('password');
+            const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+
+            // Função para alternar visibilidade da senha
+            function setupPasswordToggle(toggle, input) {
+                if (toggle && input) {
+                    toggle.addEventListener('click', function() {
+                        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                        input.setAttribute('type', type);
+                        this.classList.toggle('fa-eye');
+                        this.classList.toggle('fa-eye-slash');
+                    });
+                }
+            }
+
+            // Configurar toggles de senha
+            setupPasswordToggle(togglePassword, passwordInput);
+            setupPasswordToggle(toggleConfirmPassword, confirmPasswordInput);
+
+            // Forçar formatação do telefone
+            const phoneInput = document.getElementById('phone');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+
+                    if (value.length > 0) {
+                        value = value.match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
+                        value = !value[2] ? value[1] :
+                                '(' + value[1] + ') ' + value[2] + (value[3] ? '-' + value[3] : '');
+                    }
+
+                    e.target.value = value;
+                });
+            }
+
+            // Verificação de força da senha
+            if (passwordInput) {
+                passwordInput.addEventListener('input', function() {
+                    const strengthBar = document.getElementById('passwordStrength');
+                    const strengthText = document.getElementById('passwordStrengthText');
+                    const password = this.value;
+
+                    // Reset
+                    strengthBar.className = 'password-strength-bar';
+                    strengthText.textContent = '';
+
+                    if (password.length === 0) return;
+
+                    // Verificar força da senha
+                    let strength = 0;
+                    let text = '';
+
+                    // Comprimento mínimo
+                    if (password.length >= 8) strength++;
+
+                    // Contém letras maiúsculas e minúsculas
+                    if (password.match(/([a-z].*[A-Z])|([A-Z].*[a-z])/)) strength++;
+
+                    // Contém números
+                    if (password.match(/([0-9])/)) strength++;
+
+                    // Contém caracteres especiais
+                    if (password.match(/([!,%,&,@,#,$,^,*,?,_,~])/)) strength++;
+
+                    // Atualizar barra de força
+                    switch(strength) {
+                        case 0:
+                        case 1:
+                            strengthBar.className = 'password-strength-bar password-strength-weak';
+                            text = 'Fraca';
+                            break;
+                        case 2:
+                            strengthBar.className = 'password-strength-bar password-strength-fair';
+                            text = 'Média';
+                            break;
+                        case 3:
+                            strengthBar.className = 'password-strength-bar password-strength-good';
+                            text = 'Boa';
+                            break;
+                        case 4:
+                            strengthBar.className = 'password-strength-bar password-strength-strong';
+                            text = 'Forte';
+                            break;
+                    }
+
+                    strengthText.textContent = text;
+                });
+            }
+
+            // Configurar navegação
+            setupNavigation();
+
+            // Inicializar autenticação
+            if (window.auth) {
+                window.auth.init();
+            }
+            
+            // Criar elemento de notificação se não existir
+            if (!document.getElementById('notification')) {
+                const notification = document.createElement('div');
+                notification.id = 'notification';
+                notification.className = 'notification';
+                document.body.appendChild(notification);
+            }
+
+            // Configurar formulário de cadastro
+            const registerForm = document.getElementById('registerForm');
+            if (registerForm) {
+                registerForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleRegisterSubmit(e);
+                });
+            }
+        });
+
+        // Configurar navegação
+        function setupNavigation() {
+            // Navbar scroll effect
+            window.addEventListener('scroll', function() {
+                const navbar = document.getElementById('navbar');
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+
+            // Configurar autenticação e UI
+            updateAuthUI();
+        }
+
+        // Função para exibir notificações
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification') || createNotificationElement();
+            
+            // Limpar classes de tipo existentes
+            notification.className = 'notification';
+            notification.classList.add(type);
+            
+            // Definir ícone com base no tipo
+            let icon = '';
+            switch(type) {
+                case 'success':
+                    icon = '<i class="fas fa-check-circle"></i>';
+                    break;
+                case 'error':
+                    icon = '<i class="fas fa-exclamation-circle"></i>';
+                    break;
+                case 'warning':
+                    icon = '<i class="fas fa-exclamation-triangle"></i>';
+                    break;
+                default:
+                    icon = '<i class="fas fa-info-circle"></i>';
+            }
+            
+            notification.innerHTML = `${icon} <span>${message}</span>`;
+            notification.classList.add('show');
+            
+            // Esconder notificação após 5 segundos
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Criar elemento de notificação dinamicamente se não existir
+        function createNotificationElement() {
+            const notification = document.createElement('div');
+            notification.id = 'notification';
+            notification.className = 'notification';
+            document.body.appendChild(notification);
+            return notification;
+        }
+        
+        function updateAuthUI() {
+            const authButtons = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+            const profileNav = document.getElementById('profileNav');
+
+            // Verificar localStorage diretamente
+            const savedUser = localStorage.getItem('user');
+            const savedToken = localStorage.getItem('token');
+
+            if (savedUser && savedToken) {
+                // Usuário autenticado - redirecionar para Profile.html
+                console.log('🔐 Usuário autenticado detectado, redirecionando para perfil...');
+                window.location.href = 'Profile.html';
+                return;
+            } else {
+                // Usuário não autenticado
+                if (authButtons) authButtons.style.display = 'flex';
+                if (userMenu) userMenu.style.display = 'none';
+                if (profileNav) profileNav.style.display = 'none';
+            }
+        }
+
+        async function handleRegisterSubmit(e) {
+            e.preventDefault();
+            
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const phone = document.getElementById('phone').value.trim();
+            const button = document.getElementById('registerButton');
+            const buttonText = button.querySelector('.btn-text');
+            const form = document.getElementById('registerForm');
+            const apiUrl = window.API_BASE_URL || 'http://localhost:8000/api';
+
+            // Validações
+            if (!firstName || !lastName || !email || !password || !confirmPassword) {
+                showNotification('Por favor, preencha todos os campos obrigatórios', 'error');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showNotification('As senhas não coincidem', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showNotification('A senha deve ter pelo menos 6 caracteres', 'error');
+                return;
+            }
+
+            // Validar formato do email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showNotification('Por favor, insira um e-mail válido', 'error');
+                return;
+            }
+
+            // Mostrar loading
+            button.disabled = true;
+            buttonText.textContent = 'Criando conta...';
+
+            try {
+                // Preparar dados para envio
+                const userData = {
+                    name: `${firstName} ${lastName}`,
+                    email: email,
+                    password: password,
+                    phone: phone || undefined
+                };
+
+                console.log('Enviando dados para o servidor:', userData);
+
+                // Fazer requisição para a API
+                console.log('URL da API:', `${apiUrl}/auth/register`);
+                console.log('Dados a serem enviados:', JSON.stringify(userData, null, 2));
+                
+                const response = await fetch(`${apiUrl}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                console.log('Status da resposta:', response.status);
+                const responseText = await response.text();
+                console.log('Resposta bruta:', responseText);
+                
+                let data;
+                try {
+                    data = responseText ? JSON.parse(responseText) : {};
+                } catch (e) {
+                    console.error('Erro ao fazer parse da resposta:', e);
+                    throw new Error('Resposta inválida do servidor');
+                }
+
+                if (!response.ok) {
+                    console.error('Erro na resposta:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        data: data
+                    });
+                    throw new Error(data.message || data.error || `Erro ${response.status}: ${response.statusText}`);
+                }
+
+                // Se chegou aqui, o cadastro foi bem-sucedido
+                console.log('Resposta do servidor:', data);
+                
+                // Salvar token e dados do usuário no localStorage
+                if (data.token && data.user) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    showNotification('✅ Cadastro realizado com sucesso!', 'success');
+                    
+                    // Redirecionar após um pequeno atraso para o usuário ver a mensagem
+                    setTimeout(() => {
+                        window.location.href = 'Profile.html';
+                    }, 1500);
+                } else {
+                    throw new Error('Dados de autenticação ausentes na resposta do servidor');
+                }
+            } catch (error) {
+                console.error('Erro ao cadastrar usuário:', error);
+                const errorMessage = error.message || 'Erro ao realizar cadastro. Tente novamente mais tarde.';
+                showNotification(`❌ ${errorMessage}`, 'error');
+                
+                // Reativar botão em caso de erro
+                button.disabled = false;
+                buttonText.textContent = 'Criar Conta';
+            }
+        }
+
+        function testRegister() {
+            // Simular dados de usuário
+            const testUser = {
+                id: Date.now(),
+                name: 'Usuário Teste',
+                email: 'teste@exemplo.com',
+                avatar: null
+            };
+
+            // Salvar no localStorage
+            localStorage.setItem('token', `test-token-${Date.now()}`);
+            localStorage.setItem('user', JSON.stringify(testUser));
+
+            // Atualizar interface
+            updateAuthUI();
+
+            console.log('✅ Cadastro de teste realizado!');
+        }
+    </script>
+
+    <!-- Test Button (temporary) -->
+    <div style="position: fixed; bottom: 20px; left: 20px; z-index: 9999;">
+        <button onclick="testRegister()" style="padding: 10px 20px; background: #4F46E5; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Testar Cadastro
+        </button>
+    </div>
+</body>
+</html>

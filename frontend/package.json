@@ -1,0 +1,40 @@
+{
+  "name": "comunidade-ativa-frontend",
+  "version": "1.0.0",
+  "description": "Frontend da plataforma Comunidade Ativa - HTML/CSS/JS vanilla",
+  "main": "public/index.html",
+  "scripts": {
+    "start": "node start.js",
+    "clean": "node cleanup.js",
+    "serve": "echo 'Frontend disponível em: http://localhost:8000/app'",
+    "lint": "echo 'Linting manual necessário para HTML/CSS/JS'",
+    "format": "echo 'Formatar HTML/CSS/JS manualmente'"
+  },
+  "keywords": [
+    "frontend",
+    "html5",
+    "css3",
+    "javascript",
+    "vanilla-js",
+    "api-client",
+    "comunidade-ativa",
+    "responsive"
+  ],
+  "author": "Comunidade Ativa Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

@@ -1,0 +1,2164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Ideia - Comunidade Ativa</title>
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="Compartilhe sua ideia para melhorar nossa comunidade">
+    
+    <!-- Fontes e Ícones -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    
+    <!-- Configurações da aplicação -->
+    <script src="js/config.js"></script>
+    <!-- API e Categorias -->
+    <script src="js/api.js"></script>
+    <script src="js/categories.js"></script>
+    
+    <!-- Google Maps API -->
+    <script>
+        // Função para carregar a API do Google Maps de forma assíncrona
+        function loadGoogleMapsAPI() {
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${window.APP_CONFIG.GOOGLE_MAPS_API_KEY}&libraries=places&callback=initAutocomplete`;
+            script.async = true;
+            script.defer = true;
+            document.head.appendChild(script);
+        }
+        
+        // Carregar a API do Google Maps quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', loadGoogleMapsAPI);
+    </script>
+    
+    <style>
+        /* Estilos para o formulário de localização */
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-row .form-group {
+            flex: 1 1 200px;
+            margin-bottom: 1rem;
+            min-width: 0;
+        }
+        
+        .location-search-container {
+            position: relative;
+            width: 100%;
+        }
+        
+        .search-box {
+            position: relative;
+            display: flex;
+            width: 100%;
+        }
+        
+        .search-box .form-control {
+            padding-right: 40px;
+            width: 100%;
+        }
+        
+        .btn-location {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #4F46E5;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-location:hover {
+            background-color: rgba(79, 70, 229, 0.1);
+        }
+        
+        .btn-location:active, .btn-location.active {
+            transform: translateY(-50%) scale(0.95);
+            background-color: rgba(79, 70, 229, 0.2);
+        }
+        
+        /* Estilo para campos inválidos */
+        .form-control.is-invalid, .form-select.is-invalid {
+            border-color: #dc3545;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        
+        .form-control.is-invalid:focus, .form-select.is-invalid:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+        }
+        
+        .invalid-feedback {
+            display: none;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 0.875em;
+            color: #dc3545;
+        }
+        
+        .is-invalid ~ .invalid-feedback {
+            display: block;
+        }
+        /* Estilos para o formulário de localização */
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 1rem; /* Espaçamento entre os passos em telas pequenas */     
+        }
+        
+        .form-row .form-group {
+            flex: 1 1 200px;
+            margin-bottom: 1rem;
+            min-width: 0; /* Evita que os campos estourem o container */
+        }
+        
+        /* Estilos simplificados */
+        .form-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem; /* Adiciona padding nas laterais em telas menores */
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .form-step {
+            display: none;
+        }
+        
+        .form-step.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #4F46E5;
+            color: white;
+        }
+        
+        .btn-outline {
+            background: white;
+            border: 1px solid #4F46E5;
+            color: #4F46E5;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .progress-steps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #E5E7EB;
+            z-index: 1;
+        }
+        
+        .step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            width: 25%;
+        }
+        
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background: #E5E7EB;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-weight: 600;
+            color: #6B7280;
+        }
+        
+        .step.active .step-number {
+            background: #4F46E5;
+            color: white;
+        }
+        
+        .step-label {
+            font-size: 0.9rem;
+            color: #6B7280;
+        }
+        
+        .step.active .step-label {
+            color: #111827;
+            font-weight: 500;
+        }
+        
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+        
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 1rem;
+            display: none;
+            border-radius: 5px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Estilos para o container do formulário */
+        .form-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        /* Estilos para os passos do formulário */
+        .form-step {
+            display: none;
+        }
+        
+        .form-step.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Estilos para os botões de navegação */
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            gap: 1rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .btn i {
+            font-size: 0.9em;
+        }
+        
+        .btn-primary {
+            background-color: #4F46E5;
+            color: white;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #4F46E5;
+            color: #4F46E5;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* Estilos para a barra de progresso */
+        .progress-steps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+            padding: 0 1rem;
+        }
+        
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #e5e7eb;
+            z-index: 0;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 1rem;
+        }
+        
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #e5e7eb;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .step.active .step-number {
+            background-color: #4F46E5;
+            color: white;
+            border-color: #4F46E5;
+        }
+        
+        .step.completed .step-number {
+            background-color: #10B981;
+            color: white;
+            border-color: #10B981;
+        }
+        
+        .step-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #6b7280;
+            text-align: center;
+        }
+        
+        .step.active .step-title {
+            color: #111827;
+            font-weight: 600;
+        }
+        
+        /* Estilos para o resumo */
+        .summary-item {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .summary-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .summary-label {
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 0.5rem;
+        }
+        
+        .summary-value {
+            color: #374151;
+            line-height: 1.6;
+        }
+        
+        /* Estilos para o contador de caracteres */
+        .char-counter {
+            text-align: right;
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        
+        /* Estilos para o upload de arquivo */
+        .file-upload {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+        
+        .file-upload:hover {
+            border-color: #4F46E5;
+            background-color: #f8f9ff;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            color: #6b7280;
+            cursor: pointer;
+        }
+        
+        .file-label i {
+            font-size: 2rem;
+            color: #4F46E5;
+        }
+        
+        .file-name {
+            margin-top: 0.75rem;
+            font-size: 0.9rem;
+            color: #4F46E5;
+            word-break: break-word;
+            max-width: 100%;
+        }
+        
+        /* Estilos para o mapa */
+        .map-container {
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .map-note {
+            font-size: 0.8rem;
+            color: #6b7280;
+            text-align: center;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .map-note i {
+            color: #4F46E5;
+        }
+        
+        /* Estilos para o checkbox de termos */
+        .form-check {
+            position: relative;
+            padding-left: 35px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .form-check input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 24px;
+            width: 24px;
+            background-color: #f3f4f6;
+            border: 2px solid #d1d5db;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .form-check:hover input ~ .checkmark {
+            border-color: #9ca3af;
+        }
+        
+        .form-check input:checked ~ .checkmark {
+            background-color: #4F46E5;
+            border-color: #4F46E5;
+        }
+        
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+        
+        .form-check input:checked ~ .checkmark:after {
+            display: block;
+        }
+        
+        .form-check .checkmark:after {
+            left: 7px;
+            top: 3px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        
+        /* Estilos para o spinner de carregamento */
+        .spinner-border {
+            display: none;
+            width: 1rem;
+            height: 1rem;
+            border-width: 0.2em;
+        }
+        
+        /* Estilos para mensagens de erro */
+        .error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        
+        .form-control.is-invalid {
+            border-color: #dc2626;
+        }
+        
+        .form-control.is-invalid:focus {
+            box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+        }
+        
+        /* Estilos responsivos */
+        @media (max-width: 768px) {
+            .form-container {
+                margin: 1rem auto;
+                padding: 1.25rem;
+            }
+            
+            .progress-steps {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.5rem;
+                padding: 0;
+            }
+            
+            .progress-steps::before {
+                display: none;
+            }
+            
+            .step {
+                flex-direction: row;
+                width: 100%;
+                align-items: center;
+                gap: 1rem;
+            }
+            
+            .step-number {
+                margin-bottom: 0;
+                flex-shrink: 0;
+            }
+            
+            .step-title {
+                text-align: left;
+                font-size: 0.875rem;
+            }
+            
+            .btn-container {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            
+            .form-row .form-group {
+                width: 100%;
+                margin-bottom: 0;
+            }
+            
+            .file-upload {
+                padding: 1.5rem 1rem;
+            }
+            
+            .file-label {
+                gap: 0.5rem;
+            }
+            
+            .file-label i {
+                font-size: 1.75rem;
+            }
+            
+            .map-container {
+                margin: 1rem 0;
+            }
+            
+            #map {
+                height: 200px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 1rem;
+                margin: 0.5rem auto;
+                border-radius: 0;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+            }
+            
+            .form-group {
+                margin-bottom: 1.25rem;
+            }
+            
+            .form-control, .form-select, textarea {
+                padding: 0.75rem;
+                font-size: 1rem;
+            }
+            
+            .btn {
+                padding: 0.75rem 1rem;
+                font-size: 1rem;
+            }
+            
+            .step {
+                gap: 0.75rem;
+            }
+            
+            .step-number {
+                width: 26px;
+                height: 26px;
+                font-size: 0.875rem;
+            }
+            
+            .step-title {
+                font-size: 0.8125rem;
+            }
+            
+            .file-upload {
+                padding: 1.25rem 0.75rem;
+            }
+            
+            .file-label span {
+                font-size: 0.875rem;
+            }
+            
+            .file-name {
+                font-size: 0.8125rem;
+                padding: 0 0.5rem;
+            }
+            
+            .form-check {
+                padding-left: 30px;
+                font-size: 0.9rem;
+            }
+            
+            .checkmark {
+                height: 22px;
+                width: 22px;
+            }
+            
+            .form-check .checkmark:after {
+                left: 6px;
+                top: 2px;
+                width: 4px;
+                height: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Barra de Navegação -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-users"></i>
+                Comunidade Ativa
+            </a>
+
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="nav-link">Início</a>
+                <a href="index.html#categories" class="nav-link">Categorias</a>
+                <a href="index.html#ideas" class="nav-link">Ideias</a>
+                <a href="nova-ideia.html" class="nav-link">Enviar Ideia</a>
+            </div>
+
+            <div id="profileNav" style="display: none;">
+                <a href="Profile.html" class="btn btn-primary">Perfil</a>
+            </div>
+
+            <!-- Auth Buttons -->
+            <div class="auth-buttons" id="authButtons">
+                <button class="btn btn-outline" id="loginBtn" onclick="window.location.href='login.html'">Entrar</button>
+                <button class="btn btn-primary" id="registerBtn" onclick="window.location.href='register.html'">Cadastrar</button>
+            </div>
+
+            <!-- User Menu -->
+            <div class="user-menu group" id="userMenu" style="display: none;">
+                <div class="user-info">
+                    <img id="userAvatar" class="user-avatar" src="" alt="Avatar" style="display: none;">
+                    <div id="userAvatarPlaceholder" class="flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-sm">
+                        <span id="userInitials">CA</span>
+                    </div>
+                    <span class="user-name" id="userName">Usuário</span>
+                </div>
+                <div class="user-dropdown">
+                    <a href="Profile.html" class="dropdown-item">
+                        <i class="fas fa-user"></i> Meu Perfil
+                    </a>
+                    <a href="#" class="dropdown-item text-red-600 hover:!text-red-700" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </a>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <main class="container">
+        <div class="form-container">
+            <h1>Compartilhe sua Ideia</h1>
+            <p>Preencha o formulário abaixo para compartilhar sua ideia conosco.</p>
+            
+            <!-- Progresso -->
+            <div class="progress-steps">
+                <div class="step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Informações</div>
+                </div>
+                <div class="step active" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Detalhes</div>
+                </div>
+                <div class="step active" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Localização</div>
+                </div>
+                <div class="step active" data-step="4" style="display: none;"></div>
+                <div class="step active" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-label">Revisão</div>
+                </div>
+            </div>
+            
+            <!-- Formulário -->
+            <form id="ideaForm">
+                <!-- Passo 1: Informações Básicas -->
+                <div class="form-step active" id="step1">
+                    <div class="form-group">
+                        <label for="title" class="form-label">Título da Ideia *</label>
+                        <input type="text" id="title" class="form-control" required maxlength="100" placeholder="Dê um título claro para sua ideia">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category" class="form-label">Categoria *</label>
+                        <select id="category" class="form-control" required>
+                            <option value="">Selecione uma categoria</option>
+                            <option value="meio-ambiente">🌱 Meio Ambiente</option>
+                            <option value="seguranca">👮 Segurança</option>
+                            <option value="educacao">📚 Educação</option>
+                            <option value="saude">🏥 Saúde</option>
+                            <option value="infraestrutura">🏗️ Infraestrutura</option>
+                            <option value="cultura">🎭 Cultura e Lazer</option>
+                            <option value="outro">🔍 Outro</option>
+                        </select>
+                        <div class="invalid-feedback">Por favor, selecione uma categoria.</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description" class="form-label">Descrição Detalhada *</label>
+                        <textarea id="description" class="form-control" rows="5" required 
+                                  placeholder="Descreva sua ideia com detalhes. Seja claro e objetivo."
+                                  maxlength="2000"></textarea>
+                        <div class="char-counter"><span id="char-count">0</span>/2000 caracteres</div>
+                    </div>
+                    
+                    <div class="btn-container">
+                        <div></div>
+                        <button type="button" class="btn btn-primary next-step" data-next="2">Próximo</button>
+                    </div>
+                </div>
+                
+                <!-- Passo 2: Detalhes -->
+                <div class="form-step" id="step2">
+                    <div class="form-group">
+                        <label for="benefits" class="form-label">Quais os benefícios desta ideia? *</label>
+                        <textarea id="benefits" class="form-control" rows="3" required
+                                  placeholder="Descreva os benefícios que esta ideia trará para a comunidade..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="image" class="form-label">Imagem (opcional, máx. 5MB)</label>
+                        <div class="file-upload">
+                            <input type="file" id="image" class="file-input" accept="image/*">
+                            <label for="image" class="file-label">
+                                <i class="fas fa-upload"></i>
+                                <span>Selecione uma imagem</span>
+                            </label>
+                            <div id="file-name" class="file-name"></div>
+                        </div>
+                        <img id="imagePreview" class="image-preview" style="display: none;" alt="Preview da imagem">
+                        <small class="form-text text-muted">Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 5MB</small>
+                    </div>
+                    
+                    <div class="btn-container">
+                        <button type="button" class="btn btn-outline prev-step" data-prev="1">
+                            <i class="fas fa-arrow-left"></i> Voltar
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-next="3">
+                            Próximo <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Passo 3: Localização -->
+                <div class="form-step" id="step3">
+                    <h3>Localização</h3>
+                    <p>Informe o endereço completo onde sua ideia será implementada.</p>
+                    
+                    <div class="form-group">
+                        <div class="location-search-container">
+                            <label for="address" class="form-label">Endereço *</label>
+                            <div class="search-box">
+                                <input type="text" id="address" class="form-control" 
+                                       placeholder="Digite o endereço ou clique no ícone de localização" required>
+                                <button type="button" id="useLocationBtn" class="btn-location" 
+                                        title="Usar minha localização atual" aria-label="Usar localização atual">
+                                    <i class="fas fa-location-arrow"></i>
+                                </button>
+                            </div>
+                            <div id="address-details" style="display: none;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="street_number">Número *</label>
+                                        <input type="text" id="street_number" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="complement">Complemento</label>
+                                        <input type="text" id="complement" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="neighborhood">Bairro *</label>
+                                        <input type="text" id="neighborhood" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="city">Cidade *</label>
+                                        <input type="text" id="city" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="state">Estado *</label>
+                                        <select id="state" class="form-control" required>
+                                            <option value="">Selecione...</option>
+                                            <option value="AC">Acre</option>
+                                            <option value="AL">Alagoas</option>
+                                            <option value="AP">Amapá</option>
+                                            <option value="AM">Amazonas</option>
+                                            <option value="BA">Bahia</option>
+                                            <option value="CE">Ceará</option>
+                                            <option value="DF">Distrito Federal</option>
+                                            <option value="ES">Espírito Santo</option>
+                                            <option value="GO">Goiás</option>
+                                            <option value="MA">Maranhão</option>
+                                            <option value="MT">Mato Grosso</option>
+                                            <option value="MS">Mato Grosso do Sul</option>
+                                            <option value="MG">Minas Gerais</option>
+                                            <option value="PA">Pará</option>
+                                            <option value="PB">Paraíba</option>
+                                            <option value="PR">Paraná</option>
+                                            <option value="PE">Pernambuco</option>
+                                            <option value="PI">Piauí</option>
+                                            <option value="RJ">Rio de Janeiro</option>
+                                            <option value="RN">Rio Grande do Norte</option>
+                                            <option value="RS">Rio Grande do Sul</option>
+                                            <option value="RO">Rondônia</option>
+                                            <option value="RR">Roraima</option>
+                                            <option value="SC">Santa Catarina</option>
+                                            <option value="SP">São Paulo</option>
+                                            <option value="SE">Sergipe</option>
+                                            <option value="TO">Tocantins</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="postal_code">CEP</label>
+                                        <input type="text" id="postal_code" class="form-control" placeholder="00000-000">
+                                    </div>
+                                </div>
+                                <input type="hidden" id="location_lat">
+                                <input type="hidden" id="location_lng">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="map-container" id="map-container" style="display: none;">
+                        <div id="map" style="height: 250px; width: 100%; border-radius: 8px;"></div>
+                        <p class="map-note">
+                            <i class="fas fa-info-circle"></i> Arraste o marcador para ajustar a localização exata
+                        </p>
+                    </div>
+                    
+                    <div class="btn-container">
+                        <button type="button" class="btn btn-outline prev-step" data-prev="2">Voltar</button>
+                        <button type="button" class="btn btn-primary next-step" data-next="4">Próximo</button>
+                    </div>
+                </div>
+                
+                <!-- Passo 4: Revisão -->
+                <div class="form-step" id="step4">
+                    <h3>Revise sua ideia</h3>
+                    <p>Verifique se todas as informações estão corretas antes de enviar.</p>
+                    
+                    <div class="summary">
+                        <div class="summary-item">
+                            <div class="summary-label">Título</div>
+                            <div class="summary-value" id="summary-title"></div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Categoria</div>
+                            <div class="summary-value" id="summary-category"></div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Descrição</div>
+                            <div class="summary-value" id="summary-description"></div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Localização</div>
+                            <div class="summary-value" id="summary-location"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 2rem;">
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" id="terms" required>
+                                <span class="checkmark"></span>
+                                <span>Concordo com os <a href="termos.html" target="_blank" rel="noopener">Termos de Uso</a> e 
+                                <a href="privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a> *</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-container">
+                        <button type="button" class="btn btn-outline prev-step" data-prev="3">
+                            <i class="fas fa-arrow-left"></i> Voltar
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <span class="btn-text">Enviar Ideia</span>
+                            <div class="spinner-border spinner-border-sm d-none" role="status" id="submitSpinner">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <div class="logo">
+                        <i class="fas fa-hands-helping"></i>
+                        <span>Comunidade Ativa</span>
+                    </div>
+                    <p>Conectando pessoas para construir comunidades melhores através da colaboração e inovação.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link" aria-label="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="LinkedIn">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Links Rápidos</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Início</a></li>
+                        <li><a href="index.html#ideas">Ideias</a></li>
+                        <li><a href="nova-ideia.html">Enviar Ideia</a></li>
+                        <li><a href="#">Sobre Nós</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Contato</h4>
+                    <p><i class="fas fa-envelope"></i> contato@comunidadeativa.com</p>
+                    <p><i class="fas fa-phone"></i> (11) 9999-9999</p>
+                    <p><i class="fas fa-map-marker-alt"></i> São Paulo, Brasil</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Comunidade Ativa. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+    
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Configuração da API
+        window.API_BASE_URL = window.APP_CONFIG.API_BASE_URL || window.location.origin + '/api';
+        
+        // Inicializar o autocompletar do Google Maps
+        let autocomplete;
+        let map;
+        let marker;
+            
+            // Estado do aplicativo
+            const state = {
+                currentStep: 1,
+                formData: {
+                    title: '',
+                    category: '',
+                    description: '',
+                    benefits: '',
+                    neighborhood: '',
+                    image: null
+                }
+            };
+
+            // Verificar autenticação
+            function checkAuth() {
+                try {
+                    console.log('🔍 Verificando autenticação...');
+                    const token = localStorage.getItem('token');
+                    const user = localStorage.getItem('user');
+                    
+                    // Verificar se token e usuário existem
+                    if (!token || !user) {
+                        console.log('❌ Token ou usuário não encontrado no localStorage');
+                        const redirectUrl = window.location.pathname + window.location.search;
+                        window.location.href = `login.html?redirect=${encodeURIComponent(redirectUrl)}`;
+                        return false;
+                    }
+                    
+                    // Verificar se o token tem o formato JWT correto (3 partes separadas por .)
+                    const tokenParts = token.split('.');
+                    if (tokenParts.length !== 3) {
+                        console.error('❌ Formato de token inválido');
+                        logout('Sessão inválida. Por favor, faça login novamente.');
+                        return false;
+                    }
+                    
+                    try {
+                        // Tentar decodificar o token
+                        const base64Url = tokenParts[1];
+                        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                        }).join(''));
+                        
+                        const decoded = JSON.parse(jsonPayload);
+                        
+                        // Verificar se o token está expirado
+                        const now = Math.floor(Date.now() / 1000);
+                        if (decoded.exp && decoded.exp < now) {
+                            console.log('⚠️ Token expirado');
+                            logout('Sua sessão expirou. Por favor, faça login novamente.');
+                            return false;
+                        }
+                        
+                        console.log('✅ Usuário autenticado com sucesso');
+                        return true;
+                        
+                    } catch (e) {
+                        console.error('❌ Erro ao decodificar token:', e);
+                        // Se houver erro ao decodificar, mas o token existe, tente continuar de qualquer forma
+                        console.log('⚠️ Continuando com token não validado devido a erro de decodificação');
+                        return true;
+                    }
+                    
+                } catch (e) {
+                    console.error('❌ Erro ao verificar autenticação:', e);
+                    // Em caso de erro inesperado, tente continuar de qualquer forma
+                    console.log('⚠️ Continuando apesar do erro inesperado na verificação de autenticação');
+                    return true;
+                }
+            }
+            
+            // Função para fazer logout
+            function logout(message = '') {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');;
+                
+                if (message) {
+                    alert(message);
+                }
+                
+                window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.pathname);
+            }
+
+            // Função para inicializar o autocompletar do Google Maps
+            function initAutocomplete() {
+                const addressInput = document.getElementById('address');
+                
+                if (addressInput) {
+                    autocomplete = new google.maps.places.Autocomplete(addressInput, {
+                        componentRestrictions: { country: 'br' },
+                        fields: ['address_components', 'geometry', 'formatted_address'],
+                        types: ['address']
+                    });
+                    
+                    autocomplete.addListener('place_changed', fillInAddress);
+                    
+                    // Adicionar evento de mudança para o campo de endereço
+                    addressInput.addEventListener('change', function() {
+                        // Apenas remover o atributo de seleção se não foi autocomplete
+                        this.removeAttribute('data-place-selected');
+                    });
+                }
+            }
+
+            // Preencher os campos de endereço com base na seleção
+            function fillInAddress() {
+                const place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    return;
+                }
+                
+                // Marcar que o endereço foi selecionado do autocomplete
+                document.getElementById('address').setAttribute('data-place-selected', 'true');
+                
+                // Mostrar os campos de detalhes do endereço
+                document.getElementById('address-details').style.display = 'block';
+                
+                // Obter os componentes do endereço
+                const addressComponents = {
+                    street_number: '',
+                    route: '',
+                    neighborhood: '',
+                    city: '',
+                    state: '',
+                    postal_code: ''
+                };
+                
+                // Mapear os componentes do endereço
+                place.address_components.forEach(component => {
+                    const types = component.types;
+                    if (types.includes('street_number')) {
+                        addressComponents.street_number = component.long_name;
+                    } else if (types.includes('route')) {
+                        addressComponents.route = component.long_name;
+                    } else if (types.includes('sublocality_level_1') || types.includes('neighborhood')) {
+                        addressComponents.neighborhood = component.long_name;
+                    } else if (types.includes('administrative_area_level_2')) {
+                        addressComponents.city = component.long_name;
+                    } else if (types.includes('administrative_area_level_1')) {
+                        addressComponents.state = component.short_name;
+                    } else if (types.includes('postal_code')) {
+                        addressComponents.postal_code = component.long_name;
+                    }
+                });
+                
+                // Preencher os campos do formulário
+                document.getElementById('street_number').value = addressComponents.street_number;
+                document.getElementById('neighborhood').value = addressComponents.neighborhood;
+                document.getElementById('city').value = addressComponents.city;
+                document.getElementById('state').value = addressComponents.state;
+                document.getElementById('postal_code').value = addressComponents.postal_code;
+                
+                // Atualizar o mapa
+                updateMap(place.geometry.location.lat(), place.geometry.location.lng());
+                
+                // Mostrar os campos de endereço
+                document.getElementById('address-details').style.display = 'block';
+                document.getElementById('map-container').style.display = 'block';
+            }
+
+            // Inicializar o mapa
+            function initMap() {
+                const mapElement = document.getElementById('map');
+                if (!mapElement) return;
+                
+                // Inicializar o mapa com uma visualização padrão do Brasil
+                map = L.map('map').setView([-14.2350, -51.9253], 4);
+                
+                // Adicionar camada do OpenStreetMap
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+                
+                // Adicionar marcador arrastável
+                marker = L.marker([-14.2350, -51.9253], {
+                    draggable: true
+                }).addTo(map);
+                
+                // Atualizar coordenadas ao arrastar o marcador
+                marker.on('dragend', function() {
+                    const { lat, lng } = marker.getLatLng();
+                    updateAddressFromCoords(lat, lng);
+                });
+                
+                // Centralizar o mapa quando o usuário clicar no botão de localização
+                document.getElementById('useLocationBtn')?.addEventListener('click', function() {
+                    getCurrentLocation();
+                });
+            }
+
+            // Atualizar endereço a partir de coordenadas
+            function updateAddressFromCoords(lat, lng) {
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data) {
+                            const address = data.address;
+                            if (address) {
+                                document.getElementById('address').value = data.display_name || '';
+                                document.getElementById('street_number').value = address.house_number || '';
+                                document.getElementById('neighborhood').value = 
+                                    address.suburb || address.neighbourhood || address.city_district || '';
+                                document.getElementById('city').value = 
+                                    address.city || address.town || address.village || address.county || '';
+                                document.getElementById('state').value = address.state || '';
+                                document.getElementById('postal_code').value = address.postcode || '';
+                                document.getElementById('location_lat').value = lat;
+                                document.getElementById('location_lng').value = lng;
+                                
+                                // Mostrar os campos de endereço
+                                document.getElementById('address-details').style.display = 'block';
+                                document.getElementById('map-container').style.display = 'block';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao obter endereço:', error);
+                    });
+            }
+
+            // Atualizar o mapa com novas coordenadas
+            function updateMap(lat, lng) {
+                // Verificar se o mapa já foi inicializado
+                if (!map || !marker) {
+                    console.error('Mapa não inicializado corretamente');
+                    return;
+                }
+                
+                try {
+                    // Atualizar a posição do marcador
+                    marker.setLatLng([lat, lng]);
+                    
+                    // Centralizar o mapa na nova posição
+                    map.setView([lat, lng], 16); // Zoom 16 para uma visão mais próxima
+                    
+                    // Atualizar campos de coordenadas ocultos
+                    document.getElementById('location_lat').value = lat;
+                    document.getElementById('location_lng').value = lng;
+                    
+                    console.log('Mapa atualizado para:', { lat, lng });
+                } catch (error) {
+                    console.error('Erro ao atualizar o mapa:', error);
+                }
+            }
+
+            // Obter localização atual do usuário
+            function getCurrentLocation() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const { latitude, longitude } = position.coords;
+                            updateMap(latitude, longitude);
+                            updateAddressFromCoords(latitude, longitude);
+                        },
+                        (error) => {
+                            console.error('Erro ao obter localização:', error);
+                            alert('Não foi possível obter sua localização. Por favor, digite o endereço manualmente.');
+                        },
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    );
+                } else {
+                    alert('Seu navegador não suporta geolocalização. Por favor, digite o endereço manualmente.');
+                }
+            }
+
+            // Manipuladores de erros globais
+            window.addEventListener('error', function(event) {
+                console.error('Erro não tratado:', event.error);
+                showNotification('Ocorreu um erro inesperado. Por favor, tente novamente.', 'error');
+                return true; // Impede que o erro seja registrado no console
+            });
+
+            window.addEventListener('unhandledrejection', function(event) {
+                console.error('Promise rejeitada não tratada:', event.reason);
+                showNotification('Ocorreu um erro ao processar sua solicitação.', 'error');
+                event.preventDefault(); // Impede o log no console
+            });
+
+            // Inicialização quando o DOM estiver pronto
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('🚀 Inicializando aplicação...');
+                
+                // Adicionar classe para indicar que o JavaScript está habilitado
+                document.documentElement.classList.add('js-enabled');
+                
+                // Adicionar listener para o campo de categoria
+                const categorySelect = document.getElementById('category');
+                if (categorySelect) {
+                    categorySelect.addEventListener('change', function() {
+                        if (this.value) {
+                            this.classList.remove('is-invalid');
+                        }
+                    });
+                }
+                
+                // Verificar autenticação
+                const isAuthenticated = checkAuth();
+                console.log('🔑 Status de autenticação:', isAuthenticated ? 'Autenticado' : 'Não autenticado');
+                
+                // Se não estiver autenticado, o redirecionamento já foi tratado em checkAuth()
+                if (!isAuthenticated) {
+                    return;
+                }
+                
+                // Não inicializar o mapa imediatamente - apenas quando chegar na etapa 3
+                // O mapa será inicializado quando o usuário navegar para a etapa 3
+                
+                // Observar mudanças de etapa para inicializar o mapa na etapa 3
+                const observer = new MutationObserver(function(mutations) {
+                    const step3 = document.getElementById('step3');
+                    if (step3 && step3.classList.contains('active') && !map) {
+                        console.log('Inicializando mapa na etapa 3');
+                        initMap();
+                        const mapContainer = document.getElementById('map-container');
+                        if (mapContainer) {
+                            mapContainer.style.display = 'block';
+                            // Força o Leaflet a recalcular o tamanho do mapa
+                            setTimeout(() => {
+                                if (map) {
+                                    map.invalidateSize();
+                                }
+                            }, 100);
+                        }
+                    }
+                });
+                
+                // Observar mudanças nas classes dos elementos
+                const steps = document.querySelectorAll('.form-step');
+                steps.forEach(step => {
+                    observer.observe(step, { attributes: true, attributeFilter: ['class'] });
+                });
+                
+                // Configurar botão de localização
+                const useLocationBtn = document.getElementById('useLocationBtn');
+                if (useLocationBtn) {
+                    useLocationBtn.addEventListener('click', getCurrentLocation);
+                    
+                    // Adicionar feedback tátil em dispositivos com touch
+                    useLocationBtn.addEventListener('touchstart', function() {
+                        this.classList.add('active');
+                    }, { passive: true });
+                    
+                    useLocationBtn.addEventListener('touchend', function() {
+                        this.classList.remove('active');
+                    }, { passive: true });
+                }
+                
+                // Inicializar componentes
+                initForm();
+                setupEventListeners();
+                updateAuthUI();
+                
+                // Inicializar máscara de CEP
+                const cepInput = document.getElementById('postal_code');
+                if (cepInput) {
+                    cepInput.addEventListener('input', function(e) {
+                        let value = e.target.value.replace(/\D/g, '');
+                        if (value.length > 5) {
+                            value = value.substring(0, 5) + '-' + value.substring(5, 8);
+                        }
+                        e.target.value = value;
+                    });
+                }
+                
+                // Melhorar acessibilidade do formulário
+                const form = document.getElementById('ideaForm');
+                if (form) {
+                    // Adicionar validação em tempo real para campos obrigatórios
+                    const requiredInputs = form.querySelectorAll('[required]');
+                    requiredInputs.forEach(input => {
+                        input.addEventListener('blur', function() {
+                            if (this.value.trim() === '') {
+                                this.classList.add('is-invalid');
+                            } else {
+                                this.classList.remove('is-invalid');
+                            }
+                        });
+                        
+                        // Adicionar foco visível para acessibilidade
+                        input.addEventListener('focus', function() {
+                            this.classList.add('has-focus');
+                        });
+                        
+                        input.addEventListener('blur', function() {
+                            this.classList.remove('has-focus');
+                        });
+                    });
+                    
+                    // Adicionar suporte a teclado para navegação entre abas
+                    form.addEventListener('keydown', function(e) {
+                        if (e.key === 'Tab') {
+                            document.body.classList.add('using-keyboard');
+                        }
+                    });
+                    
+                    // Remover a classe quando o mouse for usado
+                    form.addEventListener('mousedown', function() {
+                        document.body.classList.remove('using-keyboard');
+                    });
+                }
+                
+                // Melhorar a experiência em dispositivos móveis
+                if ('ontouchstart' in window) {
+                    // Adicionar classe para dispositivos touch
+                    document.documentElement.classList.add('touch-device');
+                    
+                    // Aumentar a área de toque para botões em dispositivos móveis
+                    const buttons = document.querySelectorAll('button, .btn, [role="button"]');
+                    buttons.forEach(button => {
+                        button.style.minHeight = '44px';
+                        button.style.minWidth = '44px';
+                    });
+                    
+                    // Melhorar a experiência de rolagem em iOS
+                    document.body.style.cursor = 'pointer';
+                    
+                    // Corrigir o problema de zoom em iOS ao focar em inputs
+                    const inputs = document.querySelectorAll('input, textarea, select');
+                    inputs.forEach(input => {
+                        input.addEventListener('focus', function() {
+                            // Evitar zoom em iOS
+                            const viewport = document.querySelector('meta[name=viewport]');
+                            if (viewport) {
+                                viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0';
+                            }
+                            
+                            // Rolar o input para a visualização
+                            setTimeout(() => {
+                                this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 300);
+                        });
+                    });
+                }
+            });
+
+        // Atualizar interface do usuário
+        function updateAuthUI() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const userName = document.getElementById('userName');
+            const userMenu = document.getElementById('userMenu');
+            
+            if (user.name) {
+                userName.textContent = user.name;
+                userMenu.style.display = 'block';
+            }
+        }
+
+        // Inicializar formulário
+        function initForm() {
+            // Configurar preview de imagem
+            const imageInput = document.getElementById('image');
+            if (imageInput) {
+                imageInput.addEventListener('change', handleImageUpload);
+            }
+        }
+
+        // Configurar eventos
+        function setupEventListeners() {
+            // Navegação entre passos
+            document.querySelectorAll('.next-step').forEach(button => {
+                button.addEventListener('click', handleNextStep);
+            });
+            
+            document.querySelectorAll('.prev-step').forEach(button => {
+                button.addEventListener('click', handlePrevStep);
+            });
+
+            // Logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', handleLogout);
+            }
+
+            // Envio do formulário
+            const form = document.getElementById('ideaForm');
+            if (form) {
+                form.addEventListener('submit', handleSubmit);
+            }
+        }
+
+        // Manipular próximo passo
+        function handleNextStep(e) {
+            const nextStep = parseInt(e.target.getAttribute('data-next'));
+            const currentStep = nextStep - 1; // A etapa atual é a anterior ao próximo passo
+            
+            console.log('Tentando avançar para a etapa', nextStep, 'a partir da etapa', currentStep);
+            
+            if (validateStep(currentStep)) {
+                console.log('Validação da etapa', currentStep, 'bem-sucedida, indo para a etapa', nextStep);
+                goToStep(nextStep);
+                
+                // Atualizar resumo quando chegar na etapa 4
+                if (nextStep === 4) {
+                    updateSummary();
+                }
+            } else {
+                console.log('Validação da etapa', currentStep, 'falhou');
+            }
+        }
+
+        // Manipular passo anterior
+        function handlePrevStep(e) {
+            const prevStep = parseInt(e.target.getAttribute('data-prev'));
+            goToStep(prevStep);
+        }
+
+        // Validar etapa atual
+        function validateStep(step) {
+            console.log('Validando etapa', step);
+            // Resetar mensagens de erro
+            const errorMessages = document.querySelectorAll('.error-message');
+            console.log('Removendo', errorMessages.length, 'mensagens de erro existentes');
+            errorMessages.forEach(el => el.remove());
+            
+            if (step === 1) {
+                const title = document.getElementById('title');
+                const category = document.getElementById('category');
+                const description = document.getElementById('description');
+                
+                // Validação do título
+                if (!title.value.trim()) {
+                    showError(title, 'Por favor, insira um título');
+                    return false;
+                } else if (title.value.trim().length < 10) {
+                    showError(title, 'O título deve ter pelo menos 10 caracteres');
+                    return false;
+                }
+                
+                // Validação da categoria
+                if (!category.value) {
+                    showError(category, 'Por favor, selecione uma categoria');
+                    return false;
+                }
+                
+                // Validação da descrição
+                if (!description.value.trim()) {
+                    showError(description, 'Por favor, descreva sua ideia');
+                    return false;
+                } else if (description.value.trim().length < 30) {
+                    showError(description, 'A descrição deve ter pelo menos 30 caracteres');
+                    return false;
+                }
+                
+                // Salvar dados
+                state.formData.title = title.value.trim();
+                state.formData.category = category.value;
+                state.formData.description = description.value.trim();
+                
+            } else if (step === 2) {
+                const benefits = document.getElementById('benefits');
+                
+                if (!benefits.value.trim()) {
+                    showError(benefits, 'Por favor, descreva os benefícios');
+                    return false;
+                } else if (benefits.value.trim().length < 20) {
+                    showError(benefits, 'Os benefícios devem ter pelo menos 20 caracteres');
+                    return false;
+                }
+                
+                // Salvar dados
+                state.formData.benefits = benefits.value.trim();
+                
+            } else if (step === 3) {
+                const address = document.getElementById('address');
+                const streetNumber = document.getElementById('street_number');
+                const neighborhood = document.getElementById('neighborhood');
+                const city = document.getElementById('city');
+                const stateSelect = document.getElementById('state');
+                
+                // Validação do endereço
+                if (!address.value.trim()) {
+                    showError(address, 'Por favor, informe o endereço');
+                    return false;
+                }
+                
+                // Validação do número
+                if (!streetNumber.value.trim()) {
+                    showError(streetNumber, 'Por favor, informe o número');
+                    return false;
+                }
+                
+                // Validação do bairro
+                if (!neighborhood.value.trim()) {
+                    showError(neighborhood, 'Por favor, informe o bairro');
+                    return false;
+                } else if (neighborhood.value.trim().length < 3) {
+                    showError(neighborhood, 'O nome do bairro deve ter pelo menos 3 caracteres');
+                    return false;
+                }
+                
+                // Validação da cidade
+                if (!city.value.trim()) {
+                    showError(city, 'Por favor, informe a cidade');
+                    return false;
+                }
+                
+                // Validação do estado
+                if (!stateSelect.value) {
+                    showError(stateSelect, 'Por favor, selecione o estado');
+                    return false;
+                }
+                
+                // Salvar dados
+                state.formData.address = address.value.trim();
+                state.formData.streetNumber = streetNumber.value.trim();
+                state.formData.neighborhood = neighborhood.value.trim();
+                state.formData.city = city.value.trim();
+                state.formData.state = stateSelect.value;
+                state.formData.postalCode = document.getElementById('postal_code').value.trim();
+                state.formData.complement = document.getElementById('complement').value.trim();
+                state.formData.latitude = document.getElementById('location_lat').value;
+                state.formData.longitude = document.getElementById('location_lng').value;
+            }
+            
+            return true;
+        }
+        
+        // Mostrar mensagem de erro
+        function showError(field, message) {
+            field.style.borderColor = '#e53e3e';
+            const error = document.createElement('div');
+            error.className = 'error-message';
+            error.style.color = '#e53e3e';
+            error.style.fontSize = '0.8rem';
+            error.style.marginTop = '0.25rem';
+            error.textContent = message;
+            field.parentNode.insertBefore(error, field.nextSibling);
+            field.focus();
+        }
+
+        // Navegar para uma etapa específica
+        function goToStep(step) {
+            console.log('Indo para a etapa', step);
+            
+            // Esconder todas as etapas
+            const steps = document.querySelectorAll('.form-step');
+            console.log('Escondendo', steps.length, 'etapas');
+            
+            steps.forEach(stepEl => {
+                stepEl.classList.remove('active');
+            });
+            
+            // Mostrar a etapa atual
+            const currentStepEl = document.getElementById(`step${step}`);
+            if (currentStepEl) {
+                currentStepEl.classList.add('active');
+                console.log('Etapa', step, 'tornada visível');
+                
+                // Rolar para o topo do formulário
+                currentStepEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                console.error('Elemento da etapa', step, 'não encontrado');
+            }
+            
+            // Atualizar a barra de progresso
+            updateProgressSteps(step);
+            
+            // Atualizar estado
+            state.currentStep = step;
+            console.log('Estado atualizado para a etapa', step);
+        }
+
+        // Atualizar a barra de progresso
+        function updateProgressSteps(currentStep) {
+            document.querySelectorAll('.step').forEach(step => {
+                const stepNumber = parseInt(step.getAttribute('data-step'));
+                
+                step.classList.remove('active', 'completed');
+                
+                if (stepNumber < currentStep) {
+                    step.classList.add('completed');
+                } else if (stepNumber === currentStep) {
+                    step.classList.add('active');
+                }
+            });
+        }
+
+        // Atualizar resumo
+        function updateSummary() {
+            document.getElementById('summary-title').textContent = state.formData.title;
+            
+            // Obter o nome da categoria
+            const categorySelect = document.getElementById('category');
+            const categoryText = categorySelect.options[categorySelect.selectedIndex].text;
+            document.getElementById('summary-category').textContent = categoryText;
+            
+            // Atualizar descrição
+            document.getElementById('summary-description').textContent = state.formData.description;
+            
+            // Atualizar localização
+            const addressParts = [
+                state.formData.address,
+                state.formData.streetNumber ? `, ${state.formData.streetNumber}` : '',
+                state.formData.complement ? ` - ${state.formData.complement}` : '',
+                `\n${state.formData.neighborhood}, ${state.formData.city} - ${state.formData.state}`,
+                state.formData.postalCode ? `\nCEP: ${state.formData.postalCode}` : ''
+            ];
+            
+            document.getElementById('summary-location').innerHTML = addressParts.filter(Boolean).join('').replace(/\n/g, '<br>');
+        }
+
+        // Manipular upload de imagem
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Verificar tamanho do arquivo (máx 5MB)
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                showNotification('A imagem não pode ser maior que 5MB', 'error');
+                e.target.value = ''; // Limpa o input
+                return;
+            }
+            
+            // Verificar tipo do arquivo
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!validTypes.includes(file.type)) {
+                showNotification('Formato de arquivo não suportado. Use JPG, PNG ou GIF.', 'error');
+                e.target.value = ''; // Limpa o input
+                return;
+            }
+            
+            const reader = new FileReader();
+            const preview = document.getElementById('imagePreview');
+            
+            // Garantir que o elemento de preview existe
+            if (!preview) {
+                console.error('Elemento imagePreview não encontrado');
+                showNotification('Erro ao carregar a visualização da imagem.', 'error');
+                return;
+            }
+
+            reader.onload = function(e) {
+                try {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    // Armazena o arquivo para envio posterior
+                    state.formData.image = file;
+                    showNotification('Imagem carregada com sucesso!', 'success');
+                } catch (error) {
+                    console.error('Erro ao processar a imagem:', error);
+                    showNotification('Erro ao processar a imagem. Tente novamente.', 'error');
+                }
+            };
+            
+            reader.onerror = function(error) {
+                console.error('Erro ao ler o arquivo:', error);
+                showNotification('Erro ao carregar a imagem. Tente novamente.', 'error');
+                e.target.value = ''; // Limpa o input em caso de erro
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
+        // Manipular logout
+        function handleLogout() {
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+        }
+
+        // Manipular envio do formulário
+        async function handleSubmit(e) {
+            e.preventDefault();
+            console.log('Iniciando envio do formulário...');
+            
+            // Verificar se o usuário concordou com os termos
+            const termsCheckbox = document.getElementById('terms');
+            if (!termsCheckbox.checked) {
+                const errorMsg = 'Você precisa concordar com os Termos de Uso e Política de Privacidade';
+                console.warn(errorMsg);
+                showNotification(errorMsg, 'error');
+                return;
+            }
+            
+            // Verificar autenticação
+            if (!checkAuth()) {
+                const errorMsg = 'Sua sessão expirou. Por favor, faça login novamente.';
+                console.warn(errorMsg);
+                showNotification(errorMsg, 'error');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
+                return;
+            }
+            
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.innerHTML;
+            
+            try {
+                // Validar campos obrigatórios
+                const requiredFields = [
+                    { id: 'title', name: 'Título' },
+                    { id: 'category', name: 'Categoria' },
+                    { id: 'description', name: 'Descrição' },
+                    { id: 'address', name: 'Endereço' },
+                    { id: 'street_number', name: 'Número' },
+                    { id: 'neighborhood', name: 'Bairro' },
+                    { id: 'city', name: 'Cidade' },
+                    { id: 'state', name: 'Estado' },
+                    { id: 'postal_code', name: 'CEP' },
+                    { id: 'location_lat', name: 'Latitude' },
+                    { id: 'location_lng', name: 'Longitude' }
+                ];
+                
+                // Verificar campos obrigatórios
+                for (const field of requiredFields) {
+                    const element = document.getElementById(field.id);
+                    if (!element) {
+                        console.error(`Campo não encontrado: ${field.id}`);
+                        throw new Error(`Configuração inválida: campo ${field.name} não encontrado.`);
+                    }
+                    if (!element.value.trim()) {
+                        console.warn(`Campo obrigatório não preenchido: ${field.id}`);
+                        throw new Error(`O campo "${field.name}" é obrigatório.`);
+                    }
+                }
+                
+                console.log('Todos os campos obrigatórios estão preenchidos.');
+                
+                // Coletar dados do formulário
+                const formData = new FormData();
+                const categorySelect = document.getElementById('category');
+                const categoryValue = categorySelect ? categorySelect.value : '';
+                
+                // Validar categoria
+                if (!categoryValue) {
+                    showNotification('Por favor, selecione uma categoria.', 'error');
+                    categorySelect.classList.add('is-invalid');
+                    categorySelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+                
+                // Mapear os campos corretamente para o que o backend espera
+                const latitude = parseFloat(document.getElementById('location_lat').value);
+                const longitude = parseFloat(document.getElementById('location_lng').value);
+                
+                // Validar coordenadas
+                if (isNaN(latitude) || isNaN(longitude)) {
+                    throw new Error('Localização inválida. Por favor, selecione um endereço no mapa.');
+                }
+                
+                // Montar o endereço completo para o campo location
+                const address = document.getElementById('address').value.trim();
+                const streetNumber = document.getElementById('street_number').value.trim();
+                const complement = (document.getElementById('complement').value || '').trim();
+                const neighborhood = document.getElementById('neighborhood').value.trim();
+                const city = document.getElementById('city').value.trim();
+                const state = document.getElementById('state').value.trim();
+                const postalCode = document.getElementById('postal_code').value.trim();
+                
+                // Criar string de localização completa
+                let locationParts = [address, streetNumber];
+                if (complement) locationParts.push(complement);
+                locationParts.push(neighborhood, city, state);
+                if (postalCode) locationParts.push(`CEP: ${postalCode}`);
+                
+                const requestData = {
+                    title: document.getElementById('title').value.trim(),
+                    description: document.getElementById('description').value.trim(),
+                    location: locationParts.join(', '),
+                    latitude: latitude,
+                    longitude: longitude,
+                    category_id: categoryValue // Enviar UUID como string
+                };
+                
+                // Adicionar campos ao FormData
+                Object.entries(requestData).forEach(([key, value]) => {
+                    if (value !== null && value !== undefined) {
+                        formData.append(key, value);
+                        console.log(`Campo adicionado: ${key} = ${value}`);
+                    }
+                });
+                
+                // Adicionar imagem se existir
+                const imageInput = document.getElementById('image');
+                if (imageInput && imageInput.files.length > 0) {
+                    formData.append('image', imageInput.files[0]);
+                    console.log('Imagem anexada ao formulário');
+                } else {
+                    console.log('Nenhuma imagem anexada');
+                }
+                
+                // Configurar timeout para a requisição (30 segundos)
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+                
+                // Mostrar loading no botão
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+                
+                // URL da API
+                const apiUrl = 'http://localhost:8000/api/ideas';
+                const token = localStorage.getItem('token');
+                
+                console.log('Enviando requisição para:', apiUrl);
+                console.log('Token de autenticação:', token ? 'Presente' : 'Não encontrado');
+                
+                // Log dos dados do formulário (exceto a imagem)
+                console.log('Dados do formulário:');
+                for (let [key, value] of formData.entries()) {
+                    if (key !== 'image') {
+                        console.log(`- ${key}: ${value}`);
+                    } else {
+                        console.log(`- ${key}: [Arquivo de imagem]`);
+                    }
+                }
+                
+                // Enviar para a API
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        // Não definir Content-Type, o navegador fará isso automaticamente com o boundary
+                    },
+                    body: formData,
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                console.log('Resposta recebida. Status:', response.status);
+                
+                // Processar a resposta
+                let responseData;
+                try {
+                    responseData = await response.json();
+                } catch (error) {
+                    console.error('Erro ao fazer parse da resposta:', error);
+                    throw new Error('Resposta inválida do servidor');
+                }
+                
+                if (!response.ok) {
+                    console.error('Erro na resposta:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        data: responseData
+                    });
+                    
+                    // Tratar erros específicos
+                    if (response.status === 401) {
+                        // Token expirado ou inválido
+                        const errorMsg = 'Sua sessão expirou. Por favor, faça login novamente.';
+                        console.warn(errorMsg);
+                        showNotification(errorMsg, 'error');
+                        
+                        // Redirecionar para a página de login após 1.5 segundos
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 1500);
+                        return;
+                    } else if (response.status === 400) {
+                        // Erro de validação
+                        const errorMsg = responseData.error || 'Dados inválidos. Verifique os campos e tente novamente.';
+                        console.warn('Erro de validação:', responseData);
+                        throw new Error(errorMsg);
+                    } else if (response.status === 413) {
+                        // Arquivo muito grande
+                        throw new Error('O arquivo é muito grande. O tamanho máximo permitido é 5MB.');
+                    } else {
+                        // Outros erros
+                        const errorMsg = responseData.error || `Erro no servidor (${response.status})`;
+                        throw new Error(errorMsg);
+                    }
+                }
+                
+                // Sucesso!
+                console.log('Ideia criada com sucesso:', responseData);
+                showNotification('Ideia criada com sucesso!', 'success');
+                
+                // Redirecionar para a página de ideias após 1.5 segundos
+                setTimeout(() => {
+                    window.location.href = 'index.html#ideas';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Erro ao enviar formulário:', error);
+                
+                // Tratar erros específicos
+                let errorMessage = error.message || 'Ocorreu um erro ao enviar o formulário. Tente novamente.';
+                
+                // Mapear mensagens de erro mais amigáveis
+                if (error.name === 'AbortError') {
+                    errorMessage = 'A requisição demorou muito para ser processada. Tente novamente.';
+                } else if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Não foi possível conectar ao servidor. Verifique sua conexão com a internet.';
+                }
+                
+                showNotification(errorMessage, 'error');
+                
+                // Rolar para o topo para mostrar a mensagem de erro
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+            } finally {
+                // Restaurar o botão de envio
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalButtonText;
+                }
+            }
+        }
+        
+        // Função para exibir notificações
+        function showNotification(message, type = 'info') {
+            // Remover notificações antigas
+            const oldNotifications = document.querySelectorAll('.notification');
+            oldNotifications.forEach(notification => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            });
+            
+            // Criar elemento de notificação
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            // Estilos da notificação
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 5px;
+                color: white;
+                background-color: ${type === 'error' ? '#ff4444' : type === 'success' ? '#4CAF50' : '#2196F3'};
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                z-index: 10000;
+                opacity: 0;
+                transform: translateY(20px);
+                transition: opacity 0.3s, transform 0.3s;
+                max-width: 300px;
+                word-wrap: break-word;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animar entrada
+            setTimeout(() => {
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateY(0)';
+            }, 10);
+            
+            // Remover após 5 segundos
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 5000);
+            
+            // Fechar ao clicar
+            notification.addEventListener('click', () => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            });  
+        }
+    </script>
+</body>
+</html>

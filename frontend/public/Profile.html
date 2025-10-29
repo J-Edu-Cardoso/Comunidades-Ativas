@@ -1,0 +1,3079 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - Comunidade Ativa</title>
+    
+    <!-- Meta Tags para Compartilhamento -->
+    <meta property="og:title" content="Meu Perfil - Comunidade Ativa">
+    <meta property="og:description" content="Meu perfil na plataforma de melhorias comunitárias">
+    <meta property="og:image" content="https://s3-sua-regiao.amazonaws.com/seu-bucket/profile-og-image.jpg">
+    <meta property="og:url" content="https://seu-dominio.com/profile">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="assets/favicon.ico">
+    
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Configurações da API -->
+    <script>
+        window.API_BASE_URL = window.location.origin + '/api';
+        console.log('🔧 Profile API_BASE_URL configurada:', window.API_BASE_URL);
+        console.log('🌐 Window location:', window.location.origin);
+    </script>
+
+    <link rel="stylesheet" href="css/profile.css">
+    <style>
+        /* Estilo simplificado para os botões de ação */
+        .idea-actions {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            border-radius: 0 0 8px 8px;
+            justify-content: flex-end;
+        }
+
+        .idea-actions .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 4px;
+            color: #212529;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .idea-actions .btn:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+
+        .idea-actions .btn i {
+            margin-right: 5px;
+        }
+
+        .idea-actions .btn-danger {
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .idea-actions .btn-danger:hover {
+            background: #dc3545;
+            color: white;
+        }
+        
+        /* Estilo para o conteúdo das abas */
+        .tab-content {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: static !important;
+        }
+        
+        .tab-pane {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: static !important;
+            padding: 20px !important;
+            margin: 10px 0 !important;
+            border: 1px solid #ddd !important;
+            background: white !important;
+            border-radius: 8px !important;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            color: #ddd;
+            margin-bottom: 1rem;
+        }
+        
+        /* Estilo para o grid de ideias */
+        .ideas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .idea-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .idea-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .idea-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .idea-category {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #4F46E5;
+            background: #EEF2FF;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+        }
+        
+        .idea-status {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+        }
+        
+        .idea-status.pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+        
+        .idea-status.approved {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        
+        .idea-content {
+            padding: 1rem;
+        }
+        
+        .idea-content h3 {
+            margin: 0 0 0.5rem 0;
+            color: #1F2937;
+            font-size: 1.1rem;
+        }
+        
+        .idea-description {
+            color: #6B7280;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        
+        .idea-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: #6B7280;
+            margin-bottom: 1rem;
+        }
+        
+        .idea-meta i {
+            margin-right: 0.25rem;
+            color: #9CA3AF;
+        }
+        
+        .idea-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-top: 1px solid #eee;
+            background: #F9FAFB;
+        }
+        
+        .idea-stats {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .idea-stats span {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #6B7280;
+        }
+        
+        .idea-stats i {
+            margin-right: 0.25rem;
+        }
+
+        /* Estilo para os botões de ação */
+        /* Estilo para os botões de ação */
+        .idea-actions {
+            display: flex !important;
+            gap: 8px !important;
+            padding: 10px !important;
+            position: relative !important;
+            z-index: 1 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            width: 100% !important;
+            justify-content: flex-end !important;
+            margin-top: 10px !important;
+            border-top: 1px solid #eee !important;
+            background-color: #fff !important;
+            border-radius: 0 0 8px 8px !important;
+        }
+        
+        /* Estilo para os botões de ação */
+        .idea-actions {
+            display: flex !important;
+            gap: 8px !important;
+            padding: 10px !important;
+            position: relative !important;
+            z-index: 1 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            width: 100% !important;
+            justify-content: flex-end !important;
+            margin-top: 10px !important;
+            border-top: 1px solid #eee !important;
+            background-color: #fff !important;
+            border-radius: 0 0 8px 8px !important;
+        }
+
+        .idea-actions .btn {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 8px 12px !important;
+            border: 1px solid #e2e8f0 !important;
+            background-color: #ffffff !important;
+            color: #4a5568 !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            text-decoration: none !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+            min-width: 36px !important;
+            height: 36px !important;
+            margin: 0 !important;
+            position: relative !important;
+            z-index: 2 !important;
+        }
+        
+        .idea-actions .btn:hover {
+            background-color: #e9ecef !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+        }
+        
+        .idea-actions .btn i {
+            font-size: 14px !important;
+            margin: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: auto !important;
+            height: auto !important;
+            color: inherit !important;
+        }
+        
+        .idea-actions .btn-danger {
+            color: #e53e3e !important;
+            border-color: #e53e3e !important;
+            background-color: #fff5f5 !important;
+        }
+        
+        .idea-actions .btn-danger:hover {
+            background-color: #e53e3e !important;
+            color: white !important;
+            border-color: #e53e3e !important;
+        }
+        
+        .idea-actions .btn-danger:hover {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+        
+        /* Garantir que os botões não fiquem escondidos */
+        /* Estilo do card de ideia */
+        .idea-card {
+            position: relative;
+            overflow: visible !important;
+            background: #fff !important;
+            border-radius: 8px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            margin-bottom: 20px !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+        
+        /* Garantir que o footer tenha espaço suficiente */
+        .idea-footer {
+            padding: 12px 16px !important;
+            margin-top: 10px !important;
+            background-color: #f8fafc !important;
+            border-top: 1px solid #e2e8f0 !important;
+            border-radius: 0 0 8px 8px !important;
+        }
+        
+        .idea-footer {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-end !important;
+            gap: 10px !important;
+        }
+        /* Estilo para os ícones dentro dos botões */
+        .idea-actions .btn i {
+            font-size: 14px !important;
+            margin: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: auto !important;
+            height: auto !important;
+            color: inherit !important;
+        }
+        
+        /* Estilo de depuração para os botões */
+        /* Estilo base para os botões */
+        .idea-actions .btn {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 8px 12px !important;
+            border: 1px solid #e2e8f0 !important;
+            background-color: #ffffff !important;
+            color: #4a5568 !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            text-decoration: none !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+            min-width: 36px !important;
+            height: 36px !important;
+            margin: 0 !important;
+            position: relative !important;
+            z-index: 1 !important;
+        }
+
+        /* Estilo para o botão de perigo */
+        .idea-actions .btn-danger {
+            color: #e53e3e !important;
+            border-color: #e53e3e !important;
+            background-color: #fff5f5 !important;
+        }
+
+        .idea-actions .btn-danger:hover {
+            background-color: #e53e3e !important;
+            color: white !important;
+            border-color: #e53e3e !important;
+        }
+        
+        /* Efeito de hover para todos os botões */
+        .idea-actions .btn:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        /* Estilo para as abas */
+        .profile-tabs {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            padding: 0 20px;
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+        
+        .tab-btn {
+            padding: 10px 15px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+        
+        .tab-btn.active {
+            background: #007bff;
+            color: white;
+        }
+        
+        .tab-btn .badge {
+            background: rgba(0,0,0,0.1);
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+        
+        .tab-btn.active .badge {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        /* Estilo para o conteúdo das abas */
+        .tab-pane {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            background: #fff;
+        }
+        .tab-pane.active {
+            display: block !important;
+            animation: fadeIn 0.3s ease;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            cursor: pointer;
+            margin-right: 5px;
+            border-radius: 8px 8px 0 0;
+        }
+        .tab-btn.active {
+            background: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+        }
+        /* Forçar exibição da aba de configurações */
+        #configuracoes {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        
+        /* Estilo para os itens de configuração */
+        .settings-group {
+            margin-bottom: 30px;
+        }
+        
+        .settings-group h4 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        
+        /* Estilo para os switches */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #007bff;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    
+        /* Estilos específicos da página de perfil */
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        .profile-header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .profile-logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .profile-logo i {
+            margin-right: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .profile-nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .profile-nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .profile-nav-link:hover {
+            opacity: 0.8;
+        }
+
+        /* Profile Navigation Button */
+        #profileNavBtn {
+            margin: 0 1rem;
+        }
+
+        #profileNavBtn span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .profile-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .profile-header-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .avatar-label {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            user-select: none;
+        }
+
+        .avatar-label:hover .profile-avatar,
+        .avatar-label:hover #avatarPlaceholder {
+            transform: scale(1.05);
+            transition: transform 0.3s ease;
+        }
+
+        .avatar-label:hover .avatar-upload-hint {
+            opacity: 1;
+        }
+
+        .crop-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .crop-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 90vw;
+            max-height: 90vh;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .crop-container h3 {
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+        }
+
+        .crop-image-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 400px;
+            margin: 0 auto 1.5rem;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+
+        .crop-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .crop-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .crop-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 200px;
+            border: 3px solid #4F46E5;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+            transition: all 0.2s ease;
+            touch-action: none;
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        .crop-overlay:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.15);
+            transform: translate(-50%, -50%) scale(1.02);
+        }
+
+        .crop-overlay:active,
+        .crop-overlay.touched {
+            cursor: grabbing;
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.2);
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .crop-overlay.resize-mode {
+            cursor: nw-resize;
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.2);
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .crop-overlay.resize-mode::before {
+            display: none;
+        }
+
+        /* Center indicator */
+        .crop-overlay::before {
+            content: '✨';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: rgba(79, 70, 229, 0.8);
+            pointer-events: none;
+            z-index: 5;
+            transition: all 0.2s ease;
+        }
+
+        .crop-overlay:hover::before {
+            color: rgba(59, 130, 246, 1);
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+
+        .crop-overlay.resize-mode::before {
+            opacity: 0.3;
+            transform: translate(-50%, -50%) scale(0.8);
+        }
+
+        .crop-overlay::after {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
+            border: 2px dashed rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* Resize handles */
+        .crop-resize-handle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #4F46E5;
+            border: 3px solid white;
+            border-radius: 50%;
+            cursor: nw-resize;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+            touch-action: none;
+            z-index: 10;
+            transition: all 0.2s ease;
+        }
+
+        .crop-resize-handle:hover {
+            background: #3b82f6;
+            transform: scale(1.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .crop-resize-handle:active {
+            background: #1e40af;
+            transform: scale(1.3);
+        }
+
+        .crop-resize-handle::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Corner-specific positioning */
+        .crop-resize-handle.top-left {
+            top: -10px;
+            left: -10px;
+        }
+
+        .crop-resize-handle.top-right {
+            top: -10px;
+            right: -10px;
+        }
+
+        .crop-resize-handle.bottom-left {
+            bottom: -10px;
+            left: -10px;
+        }
+
+        .crop-resize-handle.bottom-right {
+            bottom: -10px;
+            right: -10px;
+        }
+
+        .crop-resize-line {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 2px;
+        }
+
+        .crop-resize-line.top {
+            top: -2px;
+            left: 20px;
+            right: 20px;
+            height: 4px;
+        }
+
+        .crop-resize-line.bottom {
+            bottom: -2px;
+            left: 20px;
+            right: 20px;
+            height: 4px;
+        }
+
+        .crop-resize-line.left {
+            top: 20px;
+            bottom: 20px;
+            left: -2px;
+            width: 4px;
+        }
+
+        .crop-resize-line.right {
+            top: 20px;
+            bottom: 20px;
+            right: -2px;
+            width: 4px;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .crop-image-container {
+                max-width: calc(100vw - 4rem);
+                height: 300px;
+                max-height: calc(100vh - 300px);
+            }
+
+            .crop-overlay {
+                width: 150px;
+                height: 150px;
+            }
+
+            .crop-resize-handle {
+                width: 24px;
+                height: 24px;
+            }
+
+            .crop-resize-handle.top-left {
+                top: -12px;
+                left: -12px;
+            }
+
+            .crop-resize-handle.top-right {
+                top: -12px;
+                right: -12px;
+            }
+
+            .crop-resize-handle.bottom-left {
+                bottom: -12px;
+                left: -12px;
+            }
+
+            .crop-resize-handle.bottom-right {
+                bottom: -12px;
+                right: -12px;
+            }
+
+            .crop-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .crop-buttons button {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .crop-container h3 {
+                font-size: 1.2rem;
+            }
+
+            .crop-container p {
+                font-size: 0.8rem;
+            }
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: var(--shadow);
+        }
+
+        .avatar-input {
+            display: none;
+        }
+
+        .profile-name {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .profile-bio {
+            color: var(--medium-gray);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--medium-gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Tabs */
+        .profile-tabs {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            color: var(--medium-gray);
+            transition: var(--transition);
+        }
+
+        .tab-btn:hover {
+            background: var(--light-gray);
+            color: var(--dark);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .badge {
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 2rem;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--medium-gray);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        /* Settings */
+        .settings-group {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--light-gray);
+            border-radius: 8px;
+        }
+
+        .settings-group h4 {
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: var(--transition);
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: var(--transition);
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 0 1rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3,
+        .footer-section h4 {
+            margin-bottom: 1rem;
+            color: var(--primary-light);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: var(--light-gray);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .social-link:hover {
+            background: var(--primary);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--light-gray);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .profile-header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .profile-nav {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            #profileNavBtn {
+                margin: 0;
+                order: -1;
+            }
+
+            .profile-name {
+                font-size: 1.5rem;
+            }
+
+            .profile-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .profile-tabs {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                justify-content: flex-start;
+            }
+
+            .profile-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <img src="images/logo.jpg" alt="Comunidade Ativa"><span>Comunidades Ativas</span>
+            </a>
+            
+            <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            
+            <div class="menu-overlay" id="menuOverlay"></div>
+            
+            <div class="nav-links" id="navLinks">
+                <ul>
+                    <li><a href="index.html#home" class="nav-link">Início</a></li>
+                    <li><a href="index.html#about" class="nav-link">Sobre</a></li>
+                    <li><a href="index.html#features" class="nav-link">Recursos</a></li>
+                    <li><a href="index.html#ideas" class="nav-link">Ideias</a></li>
+                    <li><a href="index.html#contact" class="nav-link">Contato</a></li>
+                </ul>
+                
+                <div class="auth-buttons" id="authButtons">
+                    <a href="#" class="btn btn-outline" id="loginBtn" onclick="showLogin(); return false;">Entrar</a>
+                    <a href="#" class="btn btn-primary" id="registerBtn" onclick="showRegister(); return false;">Cadastrar</a>
+                    
+                    <div class="user-menu" id="userMenu" style="display: none;">
+                        <div class="user-info">
+                            <img id="userAvatar" src="" alt="User" class="user-avatar">
+                            <span id="userName"></span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="user-dropdown">
+                            <a href="profile.html"><i class="fas fa-user"></i> Meu Perfil</a>
+                            <a href="minhas-ideias.html"><i class="fas fa-lightbulb"></i> Minhas Ideias</a>
+                            <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+
+
+    <!-- Main Content -->
+    <main class="profile-container">
+        <div class="profile-info">
+            <div class="profile-header-section">
+                <div class="profile-avatar-container">
+                    <label for="avatarInput" class="avatar-label">
+                        <img id="profileAvatar" class="profile-avatar" src="" alt="Avatar">
+                        <div class="avatar-upload-hint">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                    </label>
+                    <input type="file" id="avatarInput" class="avatar-input" accept="image/*">
+                </div>
+                
+                <div class="profile-details">
+                    <h1 class="profile-name" id="profileName">Carregando...</h1>
+                    <p class="profile-email" id="profileEmail">dcardprint@gmail..com</p>
+                    <p class="profile-bio" id="profileBio">Carregando biografia...</p>
+                    
+                    <div class="profile-stats">
+                        <div class="stat" id="postsStat">
+                            <span class="stat-value" id="postCount">0</span>
+                            <span class="stat-label">Publicações</span>
+                        </div>
+                        <div class="stat" id="followersStat">
+                            <span class="stat-value" id="followerCount">0</span>
+                            <span class="stat-label">Seguidores</span>
+                        </div>
+                        <div class="stat" id="followingStat">
+                            <span class="stat-value" id="followingCount">0</span>
+                            <span class="stat-label">Seguindo</span>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button id="editProfileBtn" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Editar Perfil
+                        </button>
+                        <button id="changePasswordBtn" class="btn btn-outline">
+                            <i class="fas fa-key"></i> Alterar Senha
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <button id="shareProfileBtn" class="btn btn-outline">
+                <i class="fas fa-share-alt"></i> Compartilhar
+            </button>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="profile-tabs">
+            <button class="tab-btn active" data-tab="minhas-ideias">
+                <i class="fas fa-lightbulb"></i>
+                Minhas Ideias
+                <span class="badge">0</span>
+            </button>
+            <button class="tab-btn" data-tab="participacoes">
+                <i class="fas fa-users"></i>
+                Participações
+                <span class="badge">0</span>
+            </button>
+            <button class="tab-btn" data-tab="salvos">
+                <i class="fas fa-bookmark"></i>
+                Salvos
+                <span class="badge">0</span>
+            </button>
+            <button class="tab-btn" data-tab="configuracoes">
+                <i class="fas fa-cog"></i>
+                Configurações
+            </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Minhas Ideias -->
+            <div id="minhas-ideias" class="tab-pane active">
+                <div class="empty-state">
+                    <i class="fas fa-lightbulb"></i>
+                    <h3>Nenhuma ideia publicada ainda</h3>
+                    <p>Compartilhe suas ideias com a comunidade e comece a receber apoios e colaborações!</p>
+                    <a href="nova-ideia.html" class="btn btn-primary" style="margin-top: 1rem;">
+                        <i class="fas fa-plus"></i> Nova Ideia
+                    </a>
+                </div>
+            </div>
+
+            <!-- Participações -->
+            <div id="participacoes" class="tab-pane">
+                <div class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <h3>Nenhuma participação</h3>
+                    <p>Participe de ideias da comunidade para vê-las aqui.</p>
+                </div>
+            </div>
+
+            <!-- Salvos -->
+            <div id="salvos" class="tab-pane">
+                <div class="empty-state">
+                    <i class="fas fa-bookmark"></i>
+                    <h3>Nenhum item salvo</h3>
+                    <p>Salve ideias interessantes para acessá-las facilmente depois.</p>
+                </div>
+            </div>
+
+            <!-- Configurações -->
+            <div id="configuracoes" class="tab-pane">
+                <div class="settings-group">
+                    <h4>Preferências de Notificação</h4>
+                    <div class="setting-item">
+                        <span>Notificações por e-mail</span>
+                        <label class="switch">
+                            <input type="checkbox" id="emailNotifications" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Notificações push</span>
+                        <label class="switch">
+                            <input type="checkbox" id="pushNotifications">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h4>Privacidade</h4>
+                    <div class="setting-item">
+                        <span>Perfil público</span>
+                        <label class="switch">
+                            <input type="checkbox" id="publicProfile" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Mostrar ideias no feed público</span>
+                        <label class="switch">
+                            <input type="checkbox" id="showIdeasPublic">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <button class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-save"></i> Salvar Configurações
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Crop Modal -->
+    <div id="cropModal" class="crop-modal">
+        <div class="crop-container">
+            <h3>🎯 Ajuste sua foto de perfil</h3>
+            <div style="background: #f0f9ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 12px; margin-bottom: 1rem;">
+                <p style="margin: 0; font-size: 0.9rem; color: #1e40af;">
+                    🖱️ <strong>Arraste dentro do círculo azul</strong> para reposicionar<br>
+                    🔧 <strong>Arraste os círculos azuis nos cantos</strong> para redimensionar<br>
+                    🎯 <strong>Clique em "Centralizar"</strong> para voltar ao centro<br>
+                    ✅ <strong>Clique em "Aplicar"</strong> quando estiver pronto
+                </p>
+            </div>
+
+            <div class="crop-image-container">
+                <img id="cropImage" class="crop-image" src="" alt="Imagem para corte">
+                <div id="cropOverlay" class="crop-overlay">
+                    <!-- Resize handles -->
+                    <div class="crop-resize-handle top-left"></div>
+                    <div class="crop-resize-handle top-right"></div>
+                    <div class="crop-resize-handle bottom-left"></div>
+                    <div class="crop-resize-handle bottom-right"></div>
+                    <!-- Resize lines -->
+                    <div class="crop-resize-line top"></div>
+                    <div class="crop-resize-line bottom"></div>
+                    <div class="crop-resize-line left"></div>
+                    <div class="crop-resize-line right"></div>
+                </div>
+            </div>
+
+            <div class="crop-buttons">
+                <button id="cropReset" class="btn btn-outline" style="background: #6b7280; color: white; border: none;">
+                    <i class="fas fa-redo"></i> Centralizar
+                </button>
+                <button id="cropCancel" class="btn btn-outline">Cancelar</button>
+                <button id="cropApply" class="btn btn-primary">Aplicar</button>
+            </div>
+        </div>
+    </div>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="images/logo.jpg" style="width: 200px; height: 200px;" alt="Comunidade Ativa">
+                    <p>Transformando ideias em realidade para uma cidade melhor.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h3>Links Rápidos</h3>
+                    <ul>
+                        <li><a href="#home">Início</a></li>
+                        <li><a href="#about">Sobre Nós</a></li>
+                        <li><a href="#features">Recursos</a></li>
+                        <li><a href="#ideas">Ideias</a></li>
+                        <li><a href="#contact">Contato</a></li>
+                    </ul>
+                </div>
+                <div class="footer-newsletter">
+                    <h3>Newsletter</h3>
+                    <p>Inscreva-se para receber atualizações sobre novas ideias e projetos.</p>
+                    <form id="newsletterForm">
+                        <input type="email" placeholder="Seu email" required>
+                        <button type="submit" class="btn btn-primary">Inscrever</button>
+                    </form>
+                </div>
+            </div>                                                                                                      
+            <div class="footer-bottom">
+                <p>&copy; 2025 Comunidade Ativa. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="js/api.js"></script>
+
+    <script>
+        // Função para verificar autenticação
+        function checkAuth() {
+            try {
+                const token = localStorage.getItem('token');
+                const user = localStorage.getItem('user');
+                
+                if (!token || !user) {
+                    // Se não estiver autenticado, redireciona para o login
+                    const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                    window.location.href = `login.html?redirect=${currentUrl}`;
+                    return false;
+                }
+                
+                // Verificar se o token está expirado
+                try {
+                    const tokenParts = token.split('.');
+                    if (tokenParts.length === 3) {
+                        const payload = JSON.parse(atob(tokenParts[1]));
+                        const now = Math.floor(Date.now() / 1000);
+                        
+                        if (payload.exp && payload.exp < now) {
+                            // Token expirado
+                            localStorage.removeItem('token');
+                            localStorage.removeItem('user');
+                            const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                            window.location.href = `login.html?expired=1&redirect=${currentUrl}`;
+                            return false;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Erro ao verificar token:', e);
+                    // Se houver erro ao verificar o token, força novo login
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                    window.location.href = `login.html?error=invalid_token&redirect=${currentUrl}`;
+                    return false;
+                }
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Erro na verificação de autenticação:', error);
+                return false;
+            }
+        }
+
+        // Configurações iniciais
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Verificar autenticação antes de carregar a página
+                if (!checkAuth()) {
+                    return;
+                }
+                
+                // Inicializar a interface do usuário
+                updateAuthUI();
+                
+                // Carregar dados do perfil
+                await loadUserProfile();
+                
+                // Carregar ideias do usuário
+                await loadUserIdeas();
+                
+                // Configurar eventos
+                setupEventListeners();
+                
+                // Configurar abas
+                setupTabs();
+                
+                // Atualizar avatar na navegação
+                updateNavigationAvatar();
+            } catch (error) {
+                console.error('Erro ao inicializar a página de perfil:', error);
+                showToast('Erro ao carregar o perfil. Por favor, tente novamente.', 'error');
+            }
+        });
+
+        // Carrega as ideias do usuário
+        async function loadUserIdeas() {
+            console.log('🔍 Iniciando carregamento das ideias...');
+            try {
+                const token = localStorage.getItem('token');
+                console.log('🔑 Token encontrado:', token ? 'Sim' : 'Não');
+                if (!token) {
+                    console.warn('⚠️ Usuário não autenticado. Token não encontrado.');
+                    return;
+                }
+
+                // Mostrar estado de carregamento
+                const ideasContainer = document.getElementById('minhas-ideias');
+                if (ideasContainer) {
+                    ideasContainer.innerHTML = `
+                        <div class="loading-state">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Carregando suas ideias...</p>
+                        </div>
+                    `;
+                }
+
+                // Obter o ID do usuário atual
+                const currentUser = JSON.parse(localStorage.getItem('user'));
+                if (!currentUser || !currentUser.id) {
+                    throw new Error('Usuário não autenticado');
+                }
+
+                const url = `${window.API_BASE_URL}/users/${currentUser.id}/ideas`;
+                console.log('🌐 Fazendo requisição para:', url);
+                
+                console.log('🔍 Fazendo requisição para:', url);
+                console.log('🔑 Token de autenticação:', token ? 'Presente' : 'Ausente');
+                
+                try {
+                    const response = await fetch(url, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    console.log('📡 Resposta da API recebida. Status:', response.status);
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('❌ Erro na resposta da API:', {
+                            status: response.status,
+                            statusText: response.statusText,
+                            headers: Object.fromEntries(response.headers.entries()),
+                            error: errorText
+                        });
+                        throw new Error(`Erro ao carregar ideias: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    console.log('📦 Dados recebidos:', data);
+                    
+                    // Verificar a estrutura dos dados recebidos
+                    console.log('🔍 Estrutura dos dados:', Object.keys(data));
+                    
+                    // Verificar se as ideias estão em 'ideas' ou em outra propriedade
+                    const ideas = data.ideas || data.data || [];
+                    console.log(`📊 ${ideas.length} ideias carregadas:`, ideas);
+                    
+                    // Verificar o primeiro item (se existir)
+                    if (ideas.length > 0) {
+                        console.log('📝 Primeira ideia:', ideas[0]);
+                        console.log('🔍 Estrutura da primeira ideia:', Object.keys(ideas[0]));
+                    } else {
+                        console.log('ℹ️ Nenhuma ideia encontrada para este usuário');
+                    }
+                    
+                    // Atualizar contagem de ideias
+                    const ideasCount = document.querySelector('[data-tab="minhas-ideias"] .badge');
+                    if (ideasCount) {
+                        ideasCount.textContent = ideas.length;
+                    }
+
+                    // Atualizar contagem de publicações
+                    const postCount = document.getElementById('postCount');
+                    if (postCount) {
+                        postCount.textContent = ideas.length;
+                    }
+
+                    // Atualizar o DOM com as ideias
+                    updateIdeasList(ideas);
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao processar a resposta da API:', error);
+                    // Mostrar mensagem de erro para o usuário
+                    const ideasContainer = document.getElementById('minhas-ideias');
+                    if (ideasContainer) {
+                        ideasContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <h3>Erro ao carregar ideias</h3>
+                                <p>Não foi possível carregar suas ideias. Por favor, tente novamente mais tarde.</p>
+                                <button onclick="loadUserIdeas()" class="btn btn-primary" style="margin-top: 1rem;">
+                                    <i class="fas fa-sync-alt"></i> Tentar novamente
+                                </button>
+                            </div>
+                        `;
+                    }
+                    throw error;
+                }
+
+            } catch (error) {
+                console.error('Erro ao carregar ideias do usuário:', error);
+                const ideasContainer = document.getElementById('minhas-ideias');
+                if (ideasContainer) {
+                    ideasContainer.innerHTML = `
+                        <div class="error-state">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Erro ao carregar suas ideias. Tente novamente mais tarde.</p>
+                            <button onclick="loadUserIdeas()" class="btn btn-outline">
+                                <i class="fas fa-sync-alt"></i> Tentar novamente
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Atualiza a lista de ideias no DOM
+        function updateIdeasList(ideas) {
+            console.log('🔄 Atualizando lista de ideias com:', ideas);
+            const ideasContainer = document.getElementById('minhas-ideias');
+            if (!ideasContainer) {
+                console.error('❌ Container de ideias não encontrado!');
+                return;
+            }
+
+            if (ideas.length === 0) {
+                ideasContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-lightbulb"></i>
+                        <h3>Nenhuma ideia publicada ainda</h3>
+                        <p>Compartilhe suas ideias com a comunidade e comece a receber apoios e colaborações!</p>
+                        <a href="nova-ideia.html" class="btn btn-primary" style="margin-top: 1rem;">
+                            <i class="fas fa-plus"></i> Nova Ideia
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            // Ordenar ideias por data de criação (mais recentes primeiro)
+            const sortedIdeas = [...ideas].sort((a, b) => 
+                new Date(b.created_at) - new Date(a.created_at)
+            );
+
+            // Criar HTML das ideias
+            const ideasHTML = `
+                <div class="ideas-grid">
+                    ${sortedIdeas.map(idea => `
+                        <div class="idea-card">
+                            <div class="idea-header">
+                                <span class="idea-category">${idea.category_name || 'Geral'}</span>
+                                <span class="idea-status ${idea.status || 'pending'}">
+                                    ${getStatusText(idea.status || 'pending')}
+                                </span>
+                            </div>
+                            <div class="idea-content">
+                                <h3>${idea.title}</h3>
+                                <p class="idea-description">${truncateText(idea.description, 150)}</p>
+                                <div class="idea-meta">
+                                    <span><i class="fas fa-map-marker-alt"></i> ${idea.location || 'Local não especificado'}</span>
+                                    <span><i class="far fa-calendar-alt"></i> ${formatDate(idea.created_at)}</span>
+                                </div>
+                            </div>
+                            <div class="idea-footer">
+                                <div class="idea-stats">
+                                    <span class="upvotes"><i class="fas fa-thumbs-up"></i> ${idea.upvotes || 0}</span>
+                                    <span class="comments"><i class="far fa-comment"></i> ${idea.comment_count || 0}</span>
+                                </div>
+                                <div class="idea-actions">
+                                    <button onclick="editIdea('${idea.id}')" class="btn" title="Editar">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </button>
+                                    <button onclick="deleteIdea('${idea.id}')" class="btn btn-danger" title="Excluir">
+                                        <i class="fas fa-trash"></i> Excluir
+                                    </button>
+                                    <a href="detalhes-ideia.html?id=${idea.id}" class="btn" title="Ver detalhes">
+                                        <i class="fas fa-eye"></i> Ver
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="text-center" style="margin-top: 2rem;">
+                    <a href="nova-ideia.html" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Nova Ideia
+                    </a>
+                </div>
+            `;
+
+            console.log('🔄 HTML gerado para as ideias:', ideasHTML);
+            ideasContainer.innerHTML = ideasHTML;
+            
+            // Verificar se os botões foram renderizados
+            setTimeout(() => {
+                const buttons = document.querySelectorAll('.idea-actions .btn');
+                console.log('🔍 Botões encontrados no DOM:', buttons.length);
+                buttons.forEach((btn, index) => {
+                    console.log(`🔘 Botão ${index + 1}:`, btn.outerHTML);
+                    console.log(`   - Estilos computados:`, window.getComputedStyle(btn));
+                    console.log(`   - Pai:`, btn.parentElement);
+                });
+            }, 100);
+        }
+
+        // Funções para gerenciar ideias
+        async function editIdea(ideaId) {
+            try {
+                console.log(`Editando ideia com ID: ${ideaId}`);
+                // Redirecionar para a página de edição
+                window.location.href = `editar-ideia.html?id=${ideaId}`;
+            } catch (error) {
+                console.error('Erro ao editar ideia:', error);
+                showToast('Erro ao carregar a edição da ideia', 'error');
+            }
+        }
+
+        async function deleteIdea(ideaId) {
+            if (!confirm('Tem certeza que deseja excluir esta ideia? Esta ação não pode ser desfeita.')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Usuário não autenticado');
+                }
+
+                const response = await fetch(`${window.API_BASE_URL}/ideas/${ideaId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao excluir a ideia');
+                }
+
+                // Recarregar a lista de ideias
+                showToast('Ideia excluída com sucesso!', 'success');
+                await loadUserIdeas();
+
+            } catch (error) {
+                console.error('Erro ao excluir ideia:', error);
+                showToast('Erro ao excluir a ideia', 'error');
+            }
+        }
+
+        // Funções auxiliares
+        function truncateText(text, maxLength) {
+            if (!text) return '';
+            return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+            return new Date(dateString).toLocaleDateString('pt-BR', options);
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': 'Pendente',
+                'approved': 'Aprovada',
+                'rejected': 'Rejeitada',
+                'implemented': 'Implementada'
+            };
+            return statusMap[status] || status;
+        }
+
+        function updateAuthUI() {
+            try {
+                // Obter dados do usuário do localStorage
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                
+                // Elementos do perfil
+                const profileName = document.getElementById('profileName');
+                const profileEmail = document.getElementById('profileEmail');
+                const profileAvatar = document.getElementById('profileAvatar');
+                const navProfileName = document.getElementById('navProfileName');
+                const navProfileEmail = document.getElementById('navProfileEmail');
+                const navProfileAvatar = document.getElementById('navProfileAvatar');
+                
+                // Atualizar informações do perfil
+                if (profileName) profileName.textContent = user.name || 'Usuário';
+                if (profileEmail) profileEmail.textContent = user.email || '';
+                if (profileAvatar && user.avatar) {
+                    profileAvatar.src = user.avatar;
+                    profileAvatar.alt = user.name || 'Foto de perfil';
+                }
+                
+                // Atualizar navegação
+                if (navProfileName) navProfileName.textContent = user.name || 'Usuário';
+                if (navProfileEmail) navProfileEmail.textContent = user.email || '';
+                if (navProfileAvatar && user.avatar) {
+                    navProfileAvatar.src = user.avatar;
+                    navProfileAvatar.alt = user.name || 'Foto de perfil';
+                }
+                
+                // Mostrar botão de perfil na navegação
+                const profileNavBtn = document.getElementById('profileNavBtn');
+                if (profileNavBtn) {
+                    profileNavBtn.style.display = 'block';
+                }
+                
+                // Mostrar seções autenticadas
+                document.querySelectorAll('.auth-required').forEach(el => {
+                    el.style.display = 'block';
+                });
+                
+                // Esconder seções para visitantes
+                document.querySelectorAll('.guest-only').forEach(el => {
+                    el.style.display = 'none';
+                });
+                
+                console.log('Interface do usuário atualizada com sucesso');
+                
+            } catch (error) {
+                console.error('Erro ao atualizar a interface do usuário:', error);
+            }
+        }
+
+        async function loadUserProfile() {
+            console.log('🔍 Iniciando carregamento do perfil...');
+            const savedUser = localStorage.getItem('user');
+            
+            if (!savedUser) {
+                console.log('❌ Nenhum usuário encontrado no localStorage');
+                return;
+            }
+
+            try {
+                const userData = JSON.parse(savedUser);
+                const token = localStorage.getItem('token');
+                console.log('📝 Dados do usuário encontrados no localStorage:', userData);
+
+                // Atualizar interface
+                const profileName = document.getElementById('profileName');
+                const profileAvatar = document.getElementById('profileAvatar');
+                const profileBio = document.getElementById('profileBio');
+                
+                console.log('🔘 Elementos do DOM encontrados:', { 
+                    profileName: !!profileName, 
+                    profileAvatar: !!profileAvatar, 
+                    profileBio: !!profileBio 
+                });
+
+                if (profileName) profileName.textContent = userData.name || 'Usuário';
+                if (profileBio) profileBio.textContent = userData.bio || 'Membro da comunidade ativa';
+
+                // Carregar dados adicionais do perfil da API se disponível
+                if (token) {
+                    try {
+                        // Obter o ID do usuário atual
+                        const currentUser = JSON.parse(savedUser); // Usar savedUser em vez de fazer outra chamada ao localStorage
+                        if (!currentUser || !currentUser.id) {
+                            console.warn('⚠️ ID do usuário não encontrado');
+                            return;
+                        }
+
+                        console.log('🔄 Buscando detalhes do usuário na API...');
+                        const response = await fetch(`${window.API_BASE_URL}/users/${currentUser.id}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        if (response.ok) {
+                            const userDetails = await response.json();
+                            console.log('✅ Dados do usuário recebidos da API:', userDetails);
+                            
+                            // Atualizar dados do usuário com informações da API
+                            if (userDetails.user) {
+                                const updatedUser = { ...userData, ...userDetails.user };
+                                localStorage.setItem('user', JSON.stringify(updatedUser));
+                                
+                                // Atualizar interface com os dados atualizados
+                                if (profileName) profileName.textContent = updatedUser.name || 'Usuário';
+                                if (profileBio) profileBio.textContent = updatedUser.bio || 'Membro da comunidade ativa';
+                                
+                                // Atualizar contadores
+                                if (updatedUser.ideas_count !== undefined) {
+                                    const postCount = document.getElementById('postCount');
+                                    if (postCount) postCount.textContent = updatedUser.ideas_count;
+                                    
+                                    const ideasBadge = document.querySelector('[data-tab="minhas-ideias"] .badge');
+                                    if (ideasBadge) ideasBadge.textContent = updatedUser.ideas_count;
+                                }
+                                
+                                // Atualizar avatar com os dados atualizados
+                                userData.avatar = updatedUser.avatar;
+                            }
+                        } else {
+                            console.warn('⚠️ Não foi possível buscar detalhes do usuário na API');
+                        }
+                    } catch (error) {
+                        console.error('❌ Erro ao buscar detalhes do usuário:', error);
+                    }
+                }
+
+                    // Atualizar avatar
+                    if (profileAvatar) {
+                        console.log('🖼️ Iniciando carregamento do avatar...');
+                        console.log('📌 Dados do avatar:', userData.avatar);
+                        
+                        // Configurar manipulador de erro
+                        profileAvatar.onerror = function(e) {
+                            console.error('❌ Erro ao carregar o avatar:', e);
+                            console.error('URL tentada:', this.src);
+                            // Tentar carregar um placeholder em caso de erro
+                            this.src = 'https://via.placeholder.com/150';
+                            this.style.display = 'block';
+                            this.style.opacity = '1';
+                        };
+                        
+                        // Configurar manipulador de carregamento
+                        profileAvatar.onload = function() {
+                            console.log('✅ Avatar carregado com sucesso');
+                            console.log('📏 Dimensões:', this.naturalWidth + 'x' + this.naturalHeight);
+                            this.style.display = 'block';
+                            this.style.opacity = '1';
+                            this.style.transition = 'opacity 0.3s';
+                        };
+                        
+                        // Verificar se há um avatar definido
+                        if (userData.avatar) {
+                            let avatarUrl = userData.avatar;
+                            
+                            // Se for um caminho que começa com /uploads, remover a barra inicial
+                            if (avatarUrl.startsWith('/uploads/')) {
+                                avatarUrl = avatarUrl.substring(1); // Remove a primeira barra
+                                console.log('🔄 Ajustando caminho do avatar:', avatarUrl);
+                            }
+                            
+                            // Se não começar com http, https ou data:, adicionar a URL base do servidor
+                            if (!avatarUrl.match(/^(http|https|data:)/)) {
+                                // Usar window.location.origin para pegar a origem atual (http://localhost:8000)
+                                const baseUrl = window.location.origin;
+                                avatarUrl = `${baseUrl}/${avatarUrl.replace(/^\/+/, '')}`;
+                                console.log('🌐 URL completa do avatar:', avatarUrl);
+                            }
+                            
+                            // Adicionar timestamp para evitar cache
+                            const separator = avatarUrl.includes('?') ? '&' : '?';
+                            const timestamp = new Date().getTime();
+                            const avatarUrlWithCache = `${avatarUrl}${separator}t=${timestamp}`;
+                            
+                            console.log('🔄 URL com cache busting:', avatarUrlWithCache);
+                            
+                            // Primeiro esconder, depois mudar o src e mostrar quando carregar
+                            profileAvatar.style.opacity = '0';
+                            profileAvatar.style.display = 'block';
+                            profileAvatar.src = avatarUrlWithCache;
+                            
+                        } else {
+                            console.log('👤 Nenhum avatar definido, usando placeholder padrão');
+                            // Usar um placeholder padrão
+                            profileAvatar.src = 'https://via.placeholder.com/150';
+                            profileAvatar.style.display = 'block';
+                            profileAvatar.alt = 'Avatar padrão';
+                        }
+                    }
+                    
+                } catch (error) {
+                    console.error('Erro ao carregar dados do usuário:', error);
+                }
+            }
+
+        function setupEventListeners() {
+            // Botão de logout
+            const logoutBtn = document.getElementById('profileLogoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    // Limpar localStorage
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+
+                    // Redirecionar para index
+                    window.location.href = 'index.html';
+                });
+            }
+
+            // Botão de editar perfil
+            const editBtn = document.getElementById('editProfileBtn');
+            if (editBtn) {
+                editBtn.addEventListener('click', function() {
+                    const savedUser = localStorage.getItem('user');
+                    if (savedUser) {
+                        try {
+                            const user = JSON.parse(savedUser);
+                            const name = prompt('Novo nome:', user.name || '');
+                            const bio = prompt('Nova bio:', user.bio || '');
+
+                            if (name && name.trim()) {
+                                const updatedUser = {
+                                    ...user,
+                                    name: name.trim(),
+                                    bio: bio ? bio.trim() : user.bio
+                                };
+
+                                localStorage.setItem('user', JSON.stringify(updatedUser));
+                                loadUserProfile();
+                                alert('Perfil atualizado com sucesso!');
+                            }
+                        } catch (error) {
+                            console.error('Erro ao atualizar perfil:', error);
+                            alert('Erro ao atualizar perfil');
+                        }
+                    }
+                });
+            }
+
+            // Avatar upload - clean and simple approach
+            const avatarInput = document.getElementById('avatarInput');
+            const avatarLabel = document.querySelector('.avatar-label');
+
+            if (avatarInput && avatarLabel) {
+                // Remove existing listeners if they exist
+                avatarLabel.onclick = null;
+                avatarInput.onchange = null;
+
+                // Simple click handler
+                avatarLabel.onclick = function(e) {
+                    e.preventDefault();
+                    console.log('Avatar label clicked');
+                    avatarInput.click();
+                };
+
+                // Simple change handler
+                avatarInput.onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        console.log('File selected:', file.name);
+                        handleAvatarUpload(file);
+                        // Clear input
+                        e.target.value = '';
+                    }
+                };
+
+                // Context menu for remove
+                avatarLabel.oncontextmenu = function(e) {
+                    e.preventDefault();
+                    if (confirm('Deseja remover a foto de perfil?')) {
+                        removeAvatar();
+                    }
+                };
+            }
+        }
+
+        function setupTabs() {
+            console.log('🔧 Configurando abas...');
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            
+            // Verificar se existem abas
+            console.log(`🔍 ${tabButtons.length} abas encontradas`);
+            tabButtons.forEach((btn, index) => {
+                const tabId = btn.getAttribute('data-tab');
+                console.log(`  - Aba ${index + 1}:`, tabId, btn.textContent.trim());
+            });
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+
+                    // Remove active class from all tabs
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    const tabContent = document.getElementById(tabId);
+                    if (tabContent) {
+                        console.log(`✅ Ativando aba: ${tabId}`);
+                        tabContent.classList.add('active');
+                    } else {
+                        console.error(`❌ Conteúdo da aba não encontrado: ${tabId}`);
+                    }
+                });
+            });
+        }
+
+        function handleAvatarUpload(file) {
+            if (!file) return;
+
+            console.log('📸 Avatar upload started:', file.name, 'Size:', file.size);
+
+            // Validar tipo de arquivo
+            if (!file.type.startsWith('image/')) {
+                alert('Por favor, selecione apenas arquivos de imagem (JPG, PNG, GIF)');
+                return;
+            }
+
+            // Validar tamanho (máximo 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('A imagem deve ter no máximo 5MB');
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                console.log('📖 File loaded, opening crop modal');
+                // Abrir modal de cropping ao invés de aplicar diretamente
+                openCropModal(e.target.result);
+            };
+
+            reader.onerror = function() {
+                alert('Erro ao carregar a imagem. Tente novamente.');
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function openCropModal(imageSrc) {
+            console.log('🎯 Opening crop modal');
+            const modal = document.getElementById('cropModal');
+            const cropImage = document.getElementById('cropImage');
+            const cropOverlay = document.getElementById('cropOverlay');
+
+            // Limpar eventos anteriores para evitar duplicação
+            cropOverlay.onmousedown = null;
+            cropOverlay.ontouchstart = null;
+            document.onmousemove = null;
+            document.ontouchmove = null;
+            document.onmouseup = null;
+            document.ontouchend = null;
+
+            // Configurar imagem no modal
+            cropImage.src = imageSrc;
+
+            // Mostrar modal
+            modal.style.display = 'flex';
+
+            // Fechar modal clicando fora
+            modal.onclick = function(e) {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            };
+
+            // Configurar eventos quando a imagem carregar
+            cropImage.onload = function() {
+                console.log('🖼️ Crop image loaded, setting up interaction');
+                setupCropInteraction(cropImage, cropOverlay);
+            };
+
+            // Botão cancelar
+            document.getElementById('cropCancel').onclick = function() {
+                modal.style.display = 'none';
+            };
+
+            // Botão reset (corrigido para funcionar)
+            document.getElementById('cropReset').onclick = function() {
+                resetCrop();
+            };
+
+            // Botão aplicar - ADICIONADO
+            document.getElementById('cropApply').onclick = function() {
+                applyCrop();
+            };
+        }
+
+        function setupCropInteraction(cropImage, cropOverlay) {
+            console.log('🔧 Setting up crop interaction');
+            const container = cropImage.parentElement;
+            const resizeHandles = cropOverlay.querySelectorAll('.crop-resize-handle');
+
+            console.log('📏 Found', resizeHandles.length, 'resize handles');
+
+            // LIMPAR TODOS OS EVENTOS ANTERIORES para evitar duplicação
+            cropOverlay.onmousedown = null;
+            cropOverlay.ontouchstart = null;
+            document.onmousemove = null;
+            document.ontouchmove = null;
+            document.onmouseup = null;
+            document.ontouchend = null;
+
+            resizeHandles.forEach(handle => {
+                handle.onmousedown = null;
+                handle.ontouchstart = null;
+            });
+
+            let isDragging = false;
+            let isResizing = false;
+            let currentHandle = null;
+            let startX, startY, startLeft, startTop, startWidth, startHeight;
+
+            // Função para obter posição do evento
+            function getEventPos(e) {
+                return {
+                    x: e.type.includes('touch') ? e.touches[0].clientX : e.clientX,
+                    y: e.type.includes('touch') ? e.touches[0].clientY : e.clientY
+                };
+            }
+
+            // Função para iniciar arrastar
+            function startDrag(e) {
+                // Não iniciar drag se for um handle
+                if (e.target.classList.contains('crop-resize-handle') ||
+                    e.target.classList.contains('crop-resize-line')) {
+                    console.log('🚫 Ignoring drag - clicked on handle');
+                    return;
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                const pos = getEventPos(e);
+                isDragging = true;
+
+                startX = pos.x;
+                startY = pos.y;
+                startLeft = parseFloat(cropOverlay.style.left) || 0;
+                startTop = parseFloat(cropOverlay.style.top) || 0;
+
+                cropOverlay.style.cursor = 'grabbing';
+                document.body.style.cursor = 'grabbing';
+                document.body.style.userSelect = 'none';
+
+                console.log('🎯 Started dragging overlay from', startLeft, startTop);
+            }
+
+            // Função para iniciar resize
+            function startResize(e, handle) {
+                console.log('🔧 Starting resize with handle:', handle);
+                e.preventDefault();
+                e.stopPropagation();
+
+                const pos = getEventPos(e);
+                isResizing = true;
+                currentHandle = handle;
+
+                startX = pos.x;
+                startY = pos.y;
+                startLeft = parseFloat(cropOverlay.style.left) || 0;
+                startTop = parseFloat(cropOverlay.style.top) || 0;
+                startWidth = parseFloat(cropOverlay.style.width) || 200;
+                startHeight = parseFloat(cropOverlay.style.height) || 200;
+
+                cropOverlay.classList.add('resize-mode');
+                cropOverlay.style.cursor = 'nw-resize';
+                document.body.style.cursor = 'nw-resize';
+                document.body.style.userSelect = 'none';
+            }
+
+            // Função para mover/resize
+            function handleMove(e) {
+                if (!isDragging && !isResizing) return;
+
+                e.preventDefault();
+                const pos = getEventPos(e);
+                const deltaX = pos.x - startX;
+                const deltaY = pos.y - startY;
+
+                if (isDragging) {
+                    // Mover overlay
+                    let newLeft = startLeft + deltaX;
+                    let newTop = startTop + deltaY;
+
+                    // Obter dimensões reais da imagem renderizada
+                    const imageRect = cropImage.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+
+                    // Calcular área da imagem dentro do container
+                    const imageLeft = imageRect.left - containerRect.left;
+                    const imageTop = imageRect.top - containerRect.top;
+                    const imageWidth = imageRect.width;
+                    const imageHeight = imageRect.height;
+
+                    const currentWidth = parseFloat(cropOverlay.style.width) || 200;
+                    const currentHeight = parseFloat(cropOverlay.style.height) || 200;
+
+                    // Limitar movimento à área da imagem
+                    const maxLeft = imageLeft + imageWidth - currentWidth;
+                    const maxTop = imageTop + imageHeight - currentHeight;
+
+                    newLeft = Math.max(imageLeft, Math.min(newLeft, maxLeft));
+                    newTop = Math.max(imageTop, Math.min(newTop, maxTop));
+
+                    cropOverlay.style.left = newLeft + 'px';
+                    cropOverlay.style.top = newTop + 'px';
+
+                    console.log('📍 Moved overlay to:', newLeft, newTop, 'image limits:', imageLeft, imageTop, imageWidth, imageHeight);
+
+                } else if (isResizing) {
+                    console.log('🔄 Resizing with delta:', deltaX, deltaY);
+                    // Redimensionar overlay
+                    let newWidth = startWidth;
+                    let newHeight = startHeight;
+                    let newLeft = startLeft;
+                    let newTop = startTop;
+
+                    switch(currentHandle) {
+                        case 'top-left':
+                            newWidth = startWidth - deltaX;
+                            newHeight = startHeight - deltaY;
+                            newLeft = startLeft + deltaX;
+                            newTop = startTop + deltaY;
+                            break;
+                        case 'top-right':
+                            newWidth = startWidth + deltaX;
+                            newHeight = startHeight - deltaY;
+                            newTop = startTop + deltaY;
+                            break;
+                        case 'bottom-left':
+                            newWidth = startWidth - deltaX;
+                            newHeight = startHeight + deltaY;
+                            newLeft = startLeft + deltaX;
+                            break;
+                        case 'bottom-right':
+                            newWidth = startWidth + deltaX;
+                            newHeight = startHeight + deltaY;
+                            break;
+                    }
+
+                    // Limitar tamanho
+                    const minSize = 50;
+
+                    // Obter dimensões reais da imagem renderizada
+                    const imageRect = cropImage.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+
+                    // Calcular área da imagem dentro do container
+                    const imageLeft = imageRect.left - containerRect.left;
+                    const imageTop = imageRect.top - containerRect.top;
+                    const imageWidth = imageRect.width;
+                    const imageHeight = imageRect.height;
+
+                    const maxSize = Math.min(imageWidth, imageHeight) * 0.8;
+
+                    if (newWidth >= minSize && newWidth <= maxSize &&
+                        newHeight >= minSize && newHeight <= maxSize) {
+
+                        // Limitar posição à área da imagem
+                        newLeft = Math.max(imageLeft, Math.min(newLeft, imageLeft + imageWidth - newWidth));
+                        newTop = Math.max(imageTop, Math.min(newTop, imageTop + imageHeight - newHeight));
+
+                        cropOverlay.style.width = newWidth + 'px';
+                        cropOverlay.style.height = newHeight + 'px';
+                        cropOverlay.style.left = newLeft + 'px';
+                        cropOverlay.style.top = newTop + 'px';
+
+                        // Manter circular
+                        cropOverlay.style.borderRadius = Math.min(newWidth, newHeight) / 2 + 'px';
+
+                        // Atualizar handles
+                        updateCropOverlayHandles();
+
+                        console.log('📐 Resized overlay to:', newWidth, newHeight, 'at', newLeft, newTop, 'image limits:', imageLeft, imageTop, imageWidth, imageHeight);
+                    }
+                }
+            }
+
+            // Função para parar
+            function stopInteraction() {
+                if (isDragging || isResizing) {
+                    console.log('🛑 Stopped interaction - was dragging:', isDragging, 'resizing:', isResizing);
+                }
+
+                isDragging = false;
+                isResizing = false;
+                currentHandle = null;
+
+                cropOverlay.classList.remove('resize-mode');
+                cropOverlay.style.cursor = 'grab';
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+
+            // Eventos para o overlay principal (drag)
+            cropOverlay.onmousedown = startDrag;
+            cropOverlay.ontouchstart = function(e) {
+                if (!e.target.classList.contains('crop-resize-handle') &&
+                    !e.target.classList.contains('crop-resize-line')) {
+                    startDrag(e);
+                }
+            };
+
+            // Eventos para handles (resize)
+            resizeHandles.forEach(handle => {
+                const handleClass = Array.from(handle.classList).find(cls =>
+                    cls.includes('top-') || cls.includes('bottom-'));
+                if (handleClass) {
+                    console.log('🔧 Setting up handle:', handleClass);
+                    handle.onmousedown = (e) => startResize(e, handleClass);
+                    handle.ontouchstart = (e) => startResize(e, handleClass);
+                }
+            });
+
+            // Eventos globais para movimento
+            document.onmousemove = handleMove;
+            document.ontouchmove = handleMove;
+            document.onmouseup = stopInteraction;
+            document.ontouchend = stopInteraction;
+
+            // Inicializar
+            setTimeout(() => {
+                // Obter dimensões reais da imagem renderizada
+                const imageRect = cropImage.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+
+                // Calcular área da imagem dentro do container
+                const imageLeft = imageRect.left - containerRect.left;
+                const imageTop = imageRect.top - containerRect.top;
+                const imageWidth = imageRect.width;
+                const imageHeight = imageRect.height;
+
+                // Calcular tamanho inicial baseado na imagem (não no container)
+                const maxInitialSize = Math.min(200, imageWidth * 0.6, imageHeight * 0.6);
+                const initialSize = Math.max(50, maxInitialSize);
+
+                // Calcular centro da área da imagem
+                const centerX = imageLeft + Math.max(0, (imageWidth - initialSize) / 2);
+                const centerY = imageTop + Math.max(0, (imageHeight - initialSize) / 2);
+
+                // Garantir que não saia da área da imagem
+                const finalX = Math.max(imageLeft, Math.min(centerX, imageLeft + imageWidth - initialSize));
+                const finalY = Math.max(imageTop, Math.min(centerY, imageTop + imageHeight - initialSize));
+
+                cropOverlay.style.width = initialSize + 'px';
+                cropOverlay.style.height = initialSize + 'px';
+                cropOverlay.style.left = finalX + 'px';
+                cropOverlay.style.top = finalY + 'px';
+                cropOverlay.style.borderRadius = initialSize / 2 + 'px';
+                updateCropOverlayHandles();
+
+                console.log('🎯 Crop overlay initialized:', initialSize + 'px at image center', finalX, finalY, 'image area:', imageLeft, imageTop, imageWidth, imageHeight);
+            }, 200);
+        }
+
+        function applyCrop() {
+            const cropImage = document.getElementById('cropImage');
+            const cropOverlay = document.getElementById('cropOverlay');
+            const modal = document.getElementById('cropModal');
+            const applyButton = document.getElementById('cropApply');
+
+            // Desabilitar botão durante processamento
+            applyButton.disabled = true;
+            applyButton.textContent = 'Processando...';
+
+            try {
+                // Calcular posição relativa na imagem original
+                const containerRect = cropImage.parentElement.getBoundingClientRect();
+                const imageRect = cropImage.getBoundingClientRect();
+                const overlayRect = cropOverlay.getBoundingClientRect();
+
+                // Verificar se overlay está dentro da imagem
+                if (overlayRect.left < imageRect.left ||
+                    overlayRect.right > imageRect.right ||
+                    overlayRect.top < imageRect.top ||
+                    overlayRect.bottom > imageRect.bottom) {
+                    alert('Por favor, posicione a área de corte dentro da imagem');
+                    return;
+                }
+
+                // Calcular posição relativa na imagem
+                const scaleX = cropImage.naturalWidth / imageRect.width;
+                const scaleY = cropImage.naturalHeight / imageRect.height;
+
+                const cropX = (overlayRect.left - imageRect.left) * scaleX;
+                const cropY = (overlayRect.top - imageRect.top) * scaleY;
+                const cropSize = overlayRect.width * scaleX; // Usar tamanho dinâmico do overlay
+
+                // Verificar se cropSize é válido
+                if (cropSize <= 0 || !isFinite(cropSize)) {
+                    alert('Erro no processamento da imagem. Tente novamente.');
+                    return;
+                }
+
+                // Verificar se a área de corte está dentro da imagem
+                if (cropX < 0 || cropY < 0 || cropX + cropSize > cropImage.naturalWidth || cropY + cropSize > cropImage.naturalHeight) {
+                    alert('Por favor, posicione a área de corte dentro da imagem');
+                    return;
+                }
+
+                // Criar canvas para o crop
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                canvas.width = 200;
+                canvas.height = 200;
+
+                // Desenhar parte cortada da imagem
+                ctx.drawImage(
+                    cropImage,
+                    cropX, cropY, cropSize, cropSize, // área de corte na imagem original
+                    0, 0, 200, 200 // área de destino no canvas (sempre 200x200 para avatar)
+                );
+
+                // Converter para base64
+                const croppedData = canvas.toDataURL('image/jpeg', 0.9);
+
+                // Atualizar preview
+                const profileAvatar = document.getElementById('profileAvatar');
+                const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+
+                profileAvatar.src = croppedData;
+                profileAvatar.style.display = 'block';
+                avatarPlaceholder.style.display = 'none';
+
+                // Fechar modal
+                modal.style.display = 'none';
+
+                // Salvar no localStorage
+                updateUserAvatar(croppedData);
+
+            } catch (error) {
+                console.error('Erro no crop:', error);
+                alert('Erro ao processar a imagem. Tente novamente.');
+            } finally {
+                // Reabilitar botão
+                applyButton.disabled = false;
+                applyButton.textContent = 'Aplicar';
+            }
+        }
+
+        async function updateUserAvatar(avatarData) {
+            const savedUser = localStorage.getItem('user');
+            if (!savedUser) {
+                console.error('Nenhum usuário encontrado no localStorage');
+                showToast('Erro: Usuário não autenticado', 'error');
+                return;
+            }
+
+            try {
+                const userData = JSON.parse(savedUser);
+                const token = localStorage.getItem('token');
+                
+                if (!token) {
+                    console.error('Token de autenticação não encontrado');
+                    showToast('Erro: Sessão expirada. Faça login novamente.', 'error');
+                    return;
+                }
+                
+                // 1. Atualizar localmente primeiro para feedback imediato
+                const updatedUser = {
+                    ...userData,
+                    avatar: avatarData
+                };
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                
+                // 2. Atualizar a interface
+                updateNavigationAvatar();
+                showToast('Atualizando avatar...', 'info');
+                
+                // 3. Enviar para o servidor
+                try {
+                    console.log('Iniciando upload do avatar...');
+                    
+                    // Converter base64 para blob
+                    const imgResponse = await fetch(avatarData);
+                    if (!imgResponse.ok) throw new Error('Falha ao processar a imagem');
+                    
+                    const blob = await imgResponse.blob();
+                    const file = new File([blob], 'avatar.png', { type: 'image/png' });
+                    
+                    console.log('Enviando arquivo para o servidor...');
+                    
+                    const formData = new FormData();
+                    formData.append('avatar', file);
+                    
+                    const uploadResponse = await fetch(`${window.API_BASE_URL}/users/${userData.id}/avatar`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData
+                    });
+                    
+                    if (!uploadResponse.ok) {
+                        const error = await uploadResponse.json();
+                        throw new Error(error.message || 'Falha ao enviar avatar');
+                    }
+                    
+                    const result = await uploadResponse.json();
+                    console.log('Resposta do servidor:', result);
+                    
+                    if (result && result.avatar) {
+                        // Atualizar com a URL do servidor
+                        updatedUser.avatar = result.avatar;
+                        localStorage.setItem('user', JSON.stringify(updatedUser));
+                        updateNavigationAvatar();
+                        showToast('Avatar atualizado com sucesso!', 'success');
+                        console.log('Avatar atualizado com sucesso:', result.avatar);
+                        
+                        // Forçar recarregamento do perfil para garantir que tudo está sincronizado
+                        loadUserProfile();
+                    } else {
+                        throw new Error('URL do avatar não retornada pelo servidor');
+                    }
+                } catch (apiError) {
+                    console.error('Erro ao enviar avatar para o servidor:', apiError);
+                    // Manter a versão local, mas informar o usuário
+                    showToast('Erro ao salvar no servidor. Avatar salvo apenas localmente.', 'warning');
+                }
+            } catch (error) {
+                console.error('Erro ao processar o avatar:', error);
+                showToast('Erro ao processar o avatar: ' + (error.message || 'Erro desconhecido'), 'error');
+            }
+        }
+
+        function resetCrop() {
+            console.log('🎯 Resetting crop overlay');
+            const cropImage = document.getElementById('cropImage');
+            const cropOverlay = document.getElementById('cropOverlay');
+
+            if (cropImage && cropOverlay) {
+                const container = cropImage.parentElement;
+
+                // Aguardar um pouco para garantir que a imagem esteja totalmente carregada
+                setTimeout(() => {
+                    if (container && container.offsetWidth > 0 && container.offsetHeight > 0) {
+                        // Obter dimensões reais da imagem renderizada
+                        const imageRect = cropImage.getBoundingClientRect();
+                        const containerRect = container.getBoundingClientRect();
+
+                        // Calcular onde a imagem está realmente posicionada dentro do container
+                        const imageLeft = imageRect.left - containerRect.left;
+                        const imageTop = imageRect.top - containerRect.top;
+                        const imageWidth = imageRect.width;
+                        const imageHeight = imageRect.height;
+
+                        const currentWidth = parseFloat(cropOverlay.style.width) || 200;
+                        const currentHeight = parseFloat(cropOverlay.style.height) || 200;
+
+                        // Calcular centro da área da imagem (não do container)
+                        const centerX = imageLeft + Math.max(0, (imageWidth - currentWidth) / 2);
+                        const centerY = imageTop + Math.max(0, (imageHeight - currentHeight) / 2);
+
+                        // Garantir que o centro não seja negativo
+                        const finalCenterX = Math.max(imageLeft, Math.min(centerX, imageLeft + imageWidth - currentWidth));
+                        const finalCenterY = Math.max(imageTop, Math.min(centerY, imageTop + imageHeight - currentHeight));
+
+                        // Posicionar no centro da imagem
+                        cropOverlay.style.left = finalCenterX + 'px';
+                        cropOverlay.style.top = finalCenterY + 'px';
+
+                        // Manter formato circular
+                        const borderRadius = Math.min(currentWidth, currentHeight) / 2;
+                        cropOverlay.style.borderRadius = borderRadius + 'px';
+
+                        // Atualizar handles
+                        updateCropOverlayHandles();
+
+                        console.log('📍 Overlay reset to image center:', finalCenterX, finalCenterY, 'image area:', imageLeft, imageTop, imageWidth, imageHeight);
+                    } else {
+                        console.log('⚠️ Container not ready, retrying reset...');
+                        setTimeout(() => resetCrop(), 500);
+                    }
+                }, 100);
+            } else {
+                console.log('❌ Crop elements not found');
+            }
+        }
+
+        function updateCropOverlayHandles() {
+            const cropOverlay = document.getElementById('cropOverlay');
+            if (!cropOverlay) return;
+
+            const handles = cropOverlay.querySelectorAll('.crop-resize-handle');
+            const currentWidth = parseFloat(cropOverlay.style.width) || 200;
+            const currentHeight = parseFloat(cropOverlay.style.height) || 200;
+
+            handles.forEach(handle => {
+                const size = Math.max(16, Math.min(currentWidth, currentHeight) * 0.08);
+                handle.style.width = size + 'px';
+                handle.style.height = size + 'px';
+                handle.style.fontSize = (size * 0.6) + 'px';
+            });
+
+            console.log('🔧 Updated handles for overlay size:', currentWidth, currentHeight);
+        }
+
+        function updateNavigationAvatar() {
+            console.log('🔄 Iniciando updateNavigationAvatar...');
+            // Atualizar avatar em todas as páginas que têm navegação
+            const savedUser = localStorage.getItem('user');
+            console.log('📝 Usuário no localStorage:', savedUser ? 'Encontrado' : 'Não encontrado');
+            
+            if (savedUser) {
+                try {
+                    const userData = JSON.parse(savedUser);
+                    console.log('👤 Dados do usuário:', { 
+                        name: userData.name, 
+                        hasAvatar: !!userData.avatar,
+                        avatar: userData.avatar ? 'URL do avatar presente' : 'Sem URL de avatar'
+                    });
+
+                    // Atualizar em todas as janelas/páginas abertas
+                    const eventDetail = { 
+                        avatar: userData.avatar || null, 
+                        name: userData.name || 'Usuário'
+                    };
+                    
+                    console.log('📤 Disparando evento avatarUpdated com detalhes:', eventDetail);
+                    
+                    const avatarUpdateEvent = new CustomEvent('avatarUpdated', {
+                        detail: eventDetail
+                    });
+                    
+                    window.dispatchEvent(avatarUpdateEvent);
+                    console.log('✅ Evento avatarUpdated disparado com sucesso');
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao atualizar avatar na navegação:', error);
+                }
+            } else {
+                console.log('ℹ️ Nenhum usuário encontrado no localStorage');
+            }
+        }
+
+        function removeAvatar() {
+            const profileAvatar = document.getElementById('profileAvatar');
+            const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+
+            // Esconder imagem e mostrar placeholder
+            profileAvatar.style.display = 'none';
+            avatarPlaceholder.style.display = 'flex';
+
+            // Atualizar dados do usuário no localStorage
+            const savedUser = localStorage.getItem('user');
+            if (savedUser) {
+                try {
+                    const userData = JSON.parse(savedUser);
+                    const initials = userData.name ? userData.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'CA';
+                    avatarPlaceholder.textContent = initials;
+
+                    const updatedUser = {
+                        ...userData,
+                        avatar: null
+                    };
+
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                    console.log('✅ Avatar removido com sucesso!');
+
+                    // Atualizar avatar na navegação de todas as páginas
+                    updateNavigationAvatar();
+
+                    // Mostrar feedback para o usuário
+                    showToast('Avatar removido com sucesso!', 'success');
+                } catch (error) {
+                    console.error('Erro ao remover avatar:', error);
+                    showToast('Erro ao remover avatar', 'error');
+                }
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            // Remover toasts existentes
+            const existingToasts = document.querySelectorAll('.toast-notification');
+            existingToasts.forEach(toast => toast.remove());
+
+            const toast = document.createElement('div');
+            toast.className = `toast-notification toast-${type}`;
+            toast.innerHTML = `
+                <div style="padding: 12px 16px; border-radius: 8px; color: white; font-weight: 500;">
+                    ${message}
+                </div>
+            `;
+
+            // Estilos para o toast
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 10000;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                animation: slideInToast 0.3s ease;
+            `;
+
+            // Adicionar keyframes para animação
+            if (!document.querySelector('#toast-styles')) {
+                const style = document.createElement('style');
+                style.id = 'toast-styles';
+                style.textContent = `
+                    @keyframes slideInToast {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            document.body.appendChild(toast);
+
+            // Auto-remover após 3 segundos
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.style.animation = 'slideOutToast 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 3000);
+        }
+         // Ajustar o padding do body para acomodar a navbar fixa
+        function adjustBodyPadding() {
+            const navbar = document.getElementById('navbar');
+            if (navbar) {
+                const navbarHeight = navbar.offsetHeight;
+                document.body.style.paddingTop = navbarHeight + 'px';
+            }
+        }
+
+        // Menu mobile
+        function setupMobileMenu() {
+            const menuToggle = document.getElementById('menuToggle');
+            const navLinks = document.getElementById('navLinks');
+            const menuOverlay = document.getElementById('menuOverlay');
+
+            if (menuToggle && navLinks && menuOverlay) {
+                menuToggle.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    navLinks.classList.toggle('active');
+                    menuOverlay.classList.toggle('active');
+                    document.body.classList.toggle('menu-open');
+                });
+
+                menuOverlay.addEventListener('click', function() {
+                    menuToggle.classList.remove('active');
+                    navLinks.classList.remove('active');
+                    this.classList.remove('active');
+                    document.body.classList.remove('menu-open');
+                });
+
+                // Fechar menu ao clicar em um link
+                const navItems = navLinks.querySelectorAll('a');
+                navItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        menuToggle.classList.remove('active');
+                        navLinks.classList.remove('active');
+                        menuOverlay.classList.remove('active');
+                        document.body.classList.remove('menu-open');
+                    });
+                });
+            }
+        }
+
+        // Adicionar classe quando rolar a página
+        function handleScroll() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        }
+
+        // Teste de comunicação entre abas
+        window.addEventListener('storage', function(event) {
+            console.log('📡 Evento de storage detectado:', event);
+            if (event.key === 'user') {
+                console.log('🔄 Dados do usuário atualizados no localStorage');
+                try {
+                    const userData = JSON.parse(event.newValue);
+                    console.log('👤 Dados atualizados:', userData);
+                    // Forçar atualização do avatar
+                    const event = new CustomEvent('avatarUpdated', {
+                        detail: { 
+                            avatar: userData.avatar, 
+                            name: userData.name 
+                        }
+                    });
+                    window.dispatchEvent(event);
+                } catch (error) {
+                    console.error('❌ Erro ao processar dados do usuário:', error);
+                }
+            }
+        });
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('✅ JavaScript carregado com sucesso!');
+            
+            try {
+                // Ajustar padding do body
+                adjustBodyPadding();
+                
+                // Configurar menu mobile
+                setupMobileMenu();
+                
+                // Adicionar evento de scroll
+                window.addEventListener('scroll', handleScroll);
+                
+                // Ajustar novamente quando a janela for redimensionada
+                window.addEventListener('resize', adjustBodyPadding);
+                
+                console.log('🔍 Verificando autenticação...');
+                const isAuthenticated = await checkAuth();
+                
+                if (isAuthenticated) {
+                    console.log('🔑 Usuário autenticado, carregando perfil...');
+                    
+                    // Carregar perfil do usuário
+                    if (typeof loadUserProfile === 'function') {
+                        console.log('🔄 Carregando perfil do usuário...');
+                        await loadUserProfile();
+                    } else {
+                        console.error('❌ Função loadUserProfile não encontrada!');
+                    }
+                    
+                    // Carregar ideias do usuário
+                    if (typeof loadUserIdeas === 'function') {
+                        console.log('💡 Carregando ideias do usuário...');
+                        await loadUserIdeas();
+                    }
+                }
+                
+                console.log('🔍 Verificando elementos do DOM...');
+                console.log('Elemento minhas-ideias:', document.getElementById('minhas-ideias'));
+                console.log('Elemento configuracoes:', document.getElementById('configuracoes'));
+                console.log('Botões de tab:', document.querySelectorAll('.tab-btn'));
+                
+                // Configurar abas
+                if (typeof setupTabs === 'function') {
+                    console.log('🔧 Configurando abas...');
+                    setupTabs();
+                } else {
+                    console.error('❌ ERRO: Função setupTabs não encontrada!');
+                }
+                
+                // Configurar event listeners
+                if (typeof setupEventListeners === 'function') {
+                    console.log('🔧 Configurando event listeners...');
+                    setupEventListeners();
+                }
+            
+            } catch (error) {
+                console.error('❌ Erro durante a inicialização:', error);
+                showToast('Ocorreu um erro ao carregar a página. Por favor, atualize a página.', 'error');
+            }
+        }); // Fechamento do DOMContentLoaded
+    </script>
+    
+    <!-- Mobile Menu Script -->
+    <script src="js/app.js"></script>
+    
+    <!-- Botão de teste temporário -->
+    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <button onclick="testarAtualizacaoAvatar()" style="padding: 10px; background: #4f46e5; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Testar Atualização de Avatar
+        </button>
+    </div>
+    
+    <script>
+        function testarAtualizacaoAvatar() {
+            console.log('🔍 Testando atualização de avatar...');
+            const savedUser = localStorage.getItem('user');
+            if (savedUser) {
+                try {
+                    const userData = JSON.parse(savedUser);
+                    console.log('👤 Dados atuais do usuário:', userData);
+                    
+                    // Disparar evento manualmente
+                    const event = new CustomEvent('avatarUpdated', {
+                        detail: { 
+                            avatar: userData.avatar, 
+                            name: userData.name 
+                        }
+                    });
+                    window.dispatchEvent(event);
+                    console.log('✅ Evento avatarUpdated disparado manualmente');
+                } catch (error) {
+                    console.error('❌ Erro ao testar atualização de avatar:', error);
+                }
+            } else {
+                console.log('ℹ️ Nenhum usuário encontrado no localStorage');
+            }
+        }
+    </script>
+</body>
+</html>

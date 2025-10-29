@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Fluxograma</title>
+    
+    <!-- React e ReactDOM via CDN -->
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <!-- Babel para JSX -->
+    <script src="https://unpkg.com/@babel/standalone@7.15.8/babel.min.js"></script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        #root {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .view-button {
+            padding: 8px 16px;
+            margin: 4px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .view-button.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #45a049;
+        }
+        .content-box {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid #eee;
+        }
+        
+        .flowchart {
+            margin: 20px 0;
+        }
+        
+        .flowchart-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .flowchart-item {
+            padding: 10px 20px;
+            margin: 5px 0;
+            border-radius: 6px;
+            text-align: center;
+            min-width: 200px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .flowchart-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .flowchart-arrow {
+            margin: 5px 0;
+            font-size: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Componente principal
+        function Fluxograma() {
+            const [view, setView] = React.useState('overview');
+            
+            const views = {
+                overview: 'Visão Geral',
+                authentication: 'Autenticação',
+                ideas: 'Gerenciamento de Ideias',
+                comments: 'Sistema de Comentários',
+                admin: 'Administração'
+            };
+
+            return (
+                <div>
+                    <h1>Fluxograma BPMN</h1>
+                    <p>Selecione uma visualização:</p>
+                    
+                    <div style={{marginBottom: '20px'}}>
+                        {Object.entries(views).map(([key, label]) => (
+                            <button
+                                key={key}
+                                className={`view-button ${view === key ? 'active' : ''}`}
+                                onClick={() => setView(key)}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="content-box">
+                        <h2>{views[view]}</h2>
+                        <p>Esta é a visualização do fluxo de <strong>{views[view].toLowerCase()}</strong>.</p>
+                        
+                        {view === 'overview' && (
+                            <div className="flowchart">
+                                <h3>Visão Geral do Sistema</h3>
+                                <div className="flowchart-box" style={{backgroundColor: '#e3f2fd'}}>
+                                    <div className="flowchart-item">👤 Usuário</div>
+                                    <div className="flowchart-arrow">↓</div>
+                                    <div className="flowchart-item" style={{backgroundColor: '#bbdefb'}}>🌐 Frontend (JavaScript)</div>
+                                    <div className="flowchart-arrow">↓</div>
+                                    <div className="flowchart-item" style={{backgroundColor: '#90caf9'}}>🔌 API RESTful</div>
+                                    <div className="flowchart-arrow">↓</div>
+                                    <div className="flowchart-item" style={{backgroundColor: '#64b5f6'}}>💾 Banco de Dados</div>
+                                </div>
+                                <p>Fluxo principal de comunicação do sistema.</p>
+                            </div>
+                        )}
+                        
+                        {view === 'authentication' && (
+                            <div className="flowchart">
+                                <h3>Fluxo de Autenticação</h3>
+                                <div className="flowchart-box">
+                                    <div className="flowchart-item" style={{backgroundColor: '#e8f5e9'}}>📝 Formulário de Login</div>
+                                    <div className="flowchart-arrow">↓</div>
+                                    <div className="flowchart-item" style={{backgroundColor: '#c8e6c9'}}>🔑 Validação de Credenciais</div>
+                                    <div className="flowchart-arrow">↓</div>
+                                    <div className="flowchart-item" style={{backgroundColor: '#a5d6a7'}}>✅ Geração de Token JWT</div>
+                                    <div className="flowchart-arrow">↓</div>
+                                    <div className="flowchart-item" style={{backgroundColor: '#81c784'}}>🏠 Redirecionamento</div>
+                                </div>
+                                <p>Processo completo de autenticação do usuário.</p>
+                            </div>
+                        )}
+                        
+                        {view === 'ideas' && (
+                            <div className="flowchart">
+                                <h3>Gerenciamento de Ideias</h3>
+                                <div className="flowchart-box" style={{flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center'}}>
+                                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '10px'}}>
+                                        <div className="flowchart-item" style={{backgroundColor: '#fff3e0'}}>💡 Nova Ideia</div>
+                                        <div className="flowchart-arrow">↓</div>
+                                        <div className="flowchart-item" style={{backgroundColor: '#ffe0b2'}}>📝 Escrever</div>
+                                        <div className="flowchart-arrow">↓</div>
+                                        <div className="flowchart-item" style={{backgroundColor: '#ffcc80'}}>🏷️ Categorizar</div>
+                                        <div className="flowchart-arrow">↓</div>
+                                        <div className="flowchart-item" style={{backgroundColor: '#ffb74d'}}>📤 Publicar</div>
+                                    </div>
+                                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '10px'}}>
+                                        <div className="flowchart-item" style={{backgroundColor: '#f3e5f5'}}>🔍 Buscar Ideias</div>
+                                        <div className="flowchart-arrow">↓</div>
+                                        <div className="flowchart-item" style={{backgroundColor: '#e1bee7'}}>🔎 Filtros</div>
+                                        <div className="flowchart-arrow">↓</div>
+                                        <div className="flowchart-item" style={{backgroundColor: '#ce93d8'}}>📊 Resultados</div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {view === 'comments' && (
+                            <div className="flowchart">
+                                <h3>Sistema de Comentários</h3>
+                                <div className="flowchart-box">
+                                    <div className="flowchart-item" style={{backgroundColor: '#e8eaf6'}}>💬 Novo Comentário</div>
+                                    <div className="flowchart-arrow">↓</div>
+                                    <div className="flowchart-item" style={{backgroundColor: '#c5cae9'}}>🔍 Moderação</div>
+                                    <div className="flowchart-arrow">↓</div>
+                                    <div className="flowchart-item" style={{backgroundColor: '#9fa8da'}}>✅ Publicação</div>
+                                    <div className="flowchart-arrow">↓</div>
+                                    <div className="flowchart-item" style={{backgroundColor: '#7986cb'}}>🔄 Atualização em Tempo Real</div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {view === 'admin' && (
+                            <div className="flowchart">
+                                <h3>Painel de Administração</h3>
+                                <div style={{display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap'}}>
+                                    <div style={{margin: '10px'}}>
+                                        <div className="flowchart-item" style={{backgroundColor: '#fce4ec'}}>👥 Gerenciar Usuários</div>
+                                        <div className="flowchart-arrow">↓</div>
+                                        <div className="flowchart-item" style={{backgroundColor: '#f8bbd0'}}>📊 Estatísticas</div>
+                                    </div>
+                                    <div style={{margin: '10px'}}>
+                                        <div className="flowchart-item" style={{backgroundColor: '#e0f7fa'}}>📝 Moderar Conteúdo</div>
+                                        <div className="flowchart-arrow">↓</div>
+                                        <div className="flowchart-item" style={{backgroundColor: '#b2ebf2'}}>📈 Relatórios</div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Adicione mais visualizações conforme necessário */}
+                        
+                        <div style={{marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #eee'}}>
+                            <button className="view-button">
+                                ⬇️ Exportar {views[view]}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Renderização do componente
+        ReactDOM.render(
+            <React.StrictMode>
+                <Fluxograma />
+            </React.StrictMode>,
+            document.getElementById('root')
+        );
+    </script>
+</body>
+</html>

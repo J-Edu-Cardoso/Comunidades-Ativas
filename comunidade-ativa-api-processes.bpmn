@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_1"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+
+  <!-- Diagrama BPMN da API Comunidade Ativa -->
+
+  <!-- Processo Principal: Gerenciamento de Ideias -->
+  <bpmn:process id="Process_Ideas_Management" isExecutable="false">
+
+    <!-- Pool: Usuário -->
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_User" name="Usuário">
+        <!-- Start Event: Usuário acessa plataforma -->
+        <bpmn:startEvent id="StartEvent_User_Access" name="Acessar Plataforma">
+          <bpmn:outgoing>Flow_User_Login</bpmn:outgoing>
+        </bpmn:startEvent>
+
+        <!-- Gateway: Usuário autenticado? -->
+        <bpmn:exclusiveGateway id="Gateway_Authenticated" name="Autenticado?">
+          <bpmn:incoming>Flow_User_Login</bpmn:incoming>
+          <bpmn:outgoing>Flow_Yes_Authenticated</bpmn:outgoing>
+          <bpmn:outgoing>Flow_No_Login</bpmn:outgoing>
+        </bpmn:exclusiveGateway>
+
+        <!-- Task: Fazer Login -->
+        <bpmn:userTask id="Task_Login" name="Fazer Login">
+          <bpmn:incoming>Flow_No_Login</bpmn:incoming>
+          <bpmn:outgoing>Flow_After_Login</bpmn:outgoing>
+        </bpmn:userTask>
+
+        <!-- Task: Visualizar Ideias -->
+        <bpmn:userTask id="Task_View_Ideas" name="Visualizar Ideias">
+          <bpmn:incoming>Flow_Yes_Authenticated</bpmn:incoming>
+          <bpmn:incoming>Flow_After_Login</bpmn:incoming>
+          <bpmn:outgoing>Flow_Browse_Ideas</bpmn:outgoing>
+        </bpmn:userTask>
+
+        <!-- Gateway: O que fazer com ideias? -->
+        <bpmn:exclusiveGateway id="Gateway_Idea_Action" name="Ação">
+          <bpmn:incoming>Flow_Browse_Ideas</bpmn:incoming>
+          <bpmn:outgoing>Flow_Create_Idea</bpmn:outgoing>
+          <bpmn:outgoing>Flow_Vote_Idea</bpmn:outgoing>
+          <bpmn:outgoing>Flow_Comment_Idea</bpmn:outgoing>
+          <bpmn:outgoing>Flow_Search_Ideas</bpmn:outgoing>
+        </bpmn:exclusiveGateway>
+
+        <!-- Task: Criar Nova Ideia -->
+        <bpmn:userTask id="Task_Create_Idea" name="Criar Nova Ideia">
+          <bpmn:incoming>Flow_Create_Idea</bpmn:incoming>
+          <bpmn:outgoing>Flow_Save_Idea</bpmn:outgoing>
+        </bpmn:userTask>
+
+        <!-- Task: Votar em Ideia -->
+        <bpmn:userTask id="Task_Vote_Idea" name="Votar em Ideia">
+          <bpmn:incoming>Flow_Vote_Idea</bpmn:incoming>
+          <bpmn:outgoing>Flow_Save_Vote</bpmn:outgoing>
+        </bpmn:userTask>
+
+        <!-- Task: Comentar Ideia -->
+        <bpmn:userTask id="Task_Comment_Idea" name="Comentar Ideia">
+          <bpmn:incoming>Flow_Comment_Idea</bpmn:incoming>
+          <bpmn:outgoing>Flow_Save_Comment</bpmn:outgoing>
+        </bpmn:userTask>
+
+        <!-- Task: Buscar Ideias -->
+        <bpmn:userTask id="Task_Search_Ideas" name="Buscar Ideias">
+          <bpmn:incoming>Flow_Search_Ideas</bpmn:incoming>
+          <bpmn:outgoing>Flow_Display_Results</bpmn:outgoing>
+        </bpmn:userTask>
+
+        <!-- Task: Editar Perfil -->
+        <bpmn:userTask id="Task_Edit_Profile" name="Editar Perfil">
+          <bpmn:incoming>Flow_Edit_Profile</bpmn:incoming>
+          <bpmn:outgoing>Flow_Save_Profile</bpmn:outgoing>
+        </bpmn:userTask>
+
+        <!-- End Event: Usuário sai -->
+        <bpmn:endEvent id="EndEvent_User_Exit" name="Sair da Plataforma">
+          <bpmn:incoming>Flow_Logout</bpmn:incoming>
+        </bpmn:endEvent>
+      </bpmn:lane>
+
+      <!-- Pool: Sistema/API -->
+      <bpmn:lane id="Lane_System" name="Sistema/API">
+        <!-- Task: Validar Credenciais -->
+        <bpmn:serviceTask id="Task_Validate_Credentials" name="Validar Credenciais">
+          <bpmn:incoming>Flow_After_Login</bpmn:incoming>
+          <bpmn:outgoing>Flow_Login_Success</bpmn:outgoing>
+          <bpmn:outgoing>Flow_Login_Failed</bpmn:outgoing>
+        </bpmn:serviceTask>
+
+        <!-- Task: Salvar Ideia -->
+        <bpmn:serviceTask id="Task_Save_Idea" name="Salvar Ideia">
+          <bpmn:incoming>Flow_Save_Idea</bpmn:incoming>
+          <bpmn:outgoing>Flow_Idea_Saved</bpmn:outgoing>
+        </bpmn:serviceTask>
+
+        <!-- Task: Registrar Voto -->
+        <bpmn:serviceTask id="Task_Save_Vote" name="Registrar Voto">
+          <bpmn:incoming>Flow_Save_Vote</bpmn:incoming>
+          <bpmn:outgoing>Flow_Vote_Saved</bpmn:outgoing>
+        </bpmn:serviceTask>
+
+        <!-- Task: Salvar Comentário -->
+        <bpmn:serviceTask id="Task_Save_Comment" name="Salvar Comentário">
+          <bpmn:incoming>Flow_Save_Comment</bpmn:incoming>
+          <bpmn:outgoing>Flow_Comment_Saved</bpmn:outgoing>
+        </bpmn:serviceTask>
+
+        <!-- Task: Buscar Ideias -->
+        <bpmn:serviceTask id="Task_Fetch_Ideas" name="Buscar Ideias">
+          <bpmn:incoming>Flow_Display_Results</bpmn:incoming>
+          <bpmn:outgoing>Flow_Ideas_Fetched</bpmn:outgoing>
+        </bpmn:serviceTask>
+
+        <!-- Task: Atualizar Perfil -->
+        <bpmn:serviceTask id="Task_Update_Profile" name="Atualizar Perfil">
+          <bpmn:incoming>Flow_Save_Profile</bpmn:incoming>
+          <bpmn:outgoing>Flow_Profile_Updated</bpmn:outgoing>
+        </bpmn:serviceTask>
+
+        <!-- Task: Upload Avatar -->
+        <bpmn:serviceTask id="Task_Upload_Avatar" name="Upload Avatar">
+          <bpmn:incoming>Flow_Upload_Avatar</bpmn:incoming>
+          <bpmn:outgoing>Flow_Avatar_Uploaded</bpmn:outgoing>
+        </bpmn:serviceTask>
+      </bpmn:lane>
+
+      <!-- Pool: Administrador -->
+      <bpmn:lane id="Lane_Admin" name="Administrador">
+        <!-- Task: Gerenciar Usuários -->
+        <bpmn:userTask id="Task_Manage_Users" name="Gerenciar Usuários">
+          <bpmn:incoming>Flow_Admin_Users</bpmn:incoming>
+          <bpmn:outgoing>Flow_Admin_Users_Done</bpmn:outgoing>
+        </bpmn:userTask>
+
+        <!-- Task: Gerenciar Categorias -->
+        <bpmn:userTask id="Task_Manage_Categories" name="Gerenciar Categorias">
+          <bpmn:incoming>Flow_Admin_Categories</bpmn:incoming>
+          <bpmn:outgoing>Flow_Admin_Categories_Done</bpmn:outgoing>
+        </bpmn:userTask>
+
+        <!-- Task: Visualizar Estatísticas -->
+        <bpmn:userTask id="Task_View_Stats" name="Visualizar Estatísticas">
+          <bpmn:incoming>Flow_Admin_Stats</bpmn:incoming>
+          <bpmn:outgoing>Flow_Admin_Stats_Done</bpmn:outgoing>
+        </bpmn:userTask>
+
+        <!-- Task: Moderar Conteúdo -->
+        <bpmn:userTask id="Task_Moderate_Content" name="Moderar Conteúdo">
+          <bpmn:incoming>Flow_Admin_Moderate</bpmn:incoming>
+          <bpmn:outgoing>Flow_Admin_Moderate_Done</bpmn:outgoing>
+        </bpmn:userTask>
+
+        <!-- Gateway: Admin Dashboard -->
+        <bpmn:exclusiveGateway id="Gateway_Admin_Dashboard" name="Painel Admin">
+          <bpmn:incoming>Flow_Admin_Access</bpmn:incoming>
+          <bpmn:outgoing>Flow_Admin_Users</bpmn:outgoing>
+          <bpmn:outgoing>Flow_Admin_Categories</bpmn:outgoing>
+          <bpmn:outgoing>Flow_Admin_Stats</bpmn:outgoing>
+          <bpmn:outgoing>Flow_Admin_Moderate</bpmn:outgoing>
+        </bpmn:exclusiveGateway>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <!-- Fluxos de sequência -->
+    <bpmn:sequenceFlow id="Flow_User_Login" sourceRef="StartEvent_User_Access" targetRef="Gateway_Authenticated"/>
+    <bpmn:sequenceFlow id="Flow_Yes_Authenticated" name="Sim" sourceRef="Gateway_Authenticated" targetRef="Task_View_Ideas"/>
+    <bpmn:sequenceFlow id="Flow_No_Login" name="Não" sourceRef="Gateway_Authenticated" targetRef="Task_Login"/>
+
+    <bpmn:sequenceFlow id="Flow_After_Login" sourceRef="Task_Login" targetRef="Task_Validate_Credentials"/>
+    <bpmn:sequenceFlow id="Flow_Login_Success" name="Sucesso" sourceRef="Task_Validate_Credentials" targetRef="Task_View_Ideas"/>
+    <bpmn:sequenceFlow id="Flow_Login_Failed" name="Falha" sourceRef="Task_Validate_Credentials" targetRef="Task_Login"/>
+
+    <bpmn:sequenceFlow id="Flow_Browse_Ideas" sourceRef="Task_View_Ideas" targetRef="Gateway_Idea_Action"/>
+    <bpmn:sequenceFlow id="Flow_Create_Idea" name="Criar" sourceRef="Gateway_Idea_Action" targetRef="Task_Create_Idea"/>
+    <bpmn:sequenceFlow id="Flow_Vote_Idea" name="Votar" sourceRef="Gateway_Idea_Action" targetRef="Task_Vote_Idea"/>
+    <bpmn:sequenceFlow id="Flow_Comment_Idea" name="Comentar" sourceRef="Gateway_Idea_Action" targetRef="Task_Comment_Idea"/>
+    <bpmn:sequenceFlow id="Flow_Search_Ideas" name="Buscar" sourceRef="Gateway_Idea_Action" targetRef="Task_Search_Ideas"/>
+
+    <bpmn:sequenceFlow id="Flow_Save_Idea" sourceRef="Task_Create_Idea" targetRef="Task_Save_Idea"/>
+    <bpmn:sequenceFlow id="Flow_Idea_Saved" sourceRef="Task_Save_Idea" targetRef="Task_View_Ideas"/>
+
+    <bpmn:sequenceFlow id="Flow_Save_Vote" sourceRef="Task_Vote_Idea" targetRef="Task_Save_Vote"/>
+    <bpmn:sequenceFlow id="Flow_Vote_Saved" sourceRef="Task_Save_Vote" targetRef="Task_View_Ideas"/>
+
+    <bpmn:sequenceFlow id="Flow_Save_Comment" sourceRef="Task_Comment_Idea" targetRef="Task_Save_Comment"/>
+    <bpmn:sequenceFlow id="Flow_Comment_Saved" sourceRef="Task_Save_Comment" targetRef="Task_View_Ideas"/>
+
+    <bpmn:sequenceFlow id="Flow_Display_Results" sourceRef="Task_Search_Ideas" targetRef="Task_Fetch_Ideas"/>
+    <bpmn:sequenceFlow id="Flow_Ideas_Fetched" sourceRef="Task_Fetch_Ideas" targetRef="Task_View_Ideas"/>
+
+    <bpmn:sequenceFlow id="Flow_Save_Profile" sourceRef="Task_Edit_Profile" targetRef="Task_Update_Profile"/>
+    <bpmn:sequenceFlow id="Flow_Profile_Updated" sourceRef="Task_Update_Profile" targetRef="Task_View_Ideas"/>
+
+    <bpmn:sequenceFlow id="Flow_Upload_Avatar" sourceRef="Task_Edit_Profile" targetRef="Task_Upload_Avatar"/>
+    <bpmn:sequenceFlow id="Flow_Avatar_Uploaded" sourceRef="Task_Upload_Avatar" targetRef="Task_Update_Profile"/>
+
+    <!-- Fluxos de Admin -->
+    <bpmn:sequenceFlow id="Flow_Admin_Access" sourceRef="Gateway_Authenticated" targetRef="Gateway_Admin_Dashboard"/>
+    <bpmn:sequenceFlow id="Flow_Admin_Users" name="Usuários" sourceRef="Gateway_Admin_Dashboard" targetRef="Task_Manage_Users"/>
+    <bpmn:sequenceFlow id="Flow_Admin_Categories" name="Categorias" sourceRef="Gateway_Admin_Dashboard" targetRef="Task_Manage_Categories"/>
+    <bpmn:sequenceFlow id="Flow_Admin_Stats" name="Estatísticas" sourceRef="Gateway_Admin_Dashboard" targetRef="Task_View_Stats"/>
+    <bpmn:sequenceFlow id="Flow_Admin_Moderate" name="Moderação" sourceRef="Gateway_Admin_Dashboard" targetRef="Task_Moderate_Content"/>
+
+    <bpmn:sequenceFlow id="Flow_Admin_Users_Done" sourceRef="Task_Manage_Users" targetRef="Gateway_Admin_Dashboard"/>
+    <bpmn:sequenceFlow id="Flow_Admin_Categories_Done" sourceRef="Task_Manage_Categories" targetRef="Gateway_Admin_Dashboard"/>
+    <bpmn:sequenceFlow id="Flow_Admin_Stats_Done" sourceRef="Task_View_Stats" targetRef="Gateway_Admin_Dashboard"/>
+    <bpmn:sequenceFlow id="Flow_Admin_Moderate_Done" sourceRef="Task_Moderate_Content" targetRef="Gateway_Admin_Dashboard"/>
+
+    <!-- Fluxo de Logout -->
+    <bpmn:sequenceFlow id="Flow_Logout" sourceRef="Task_Edit_Profile" targetRef="EndEvent_User_Exit"/>
+  </bpmn:process>
+
+  <!-- Processo: Registro de Usuário -->
+  <bpmn:process id="Process_User_Registration" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_Registration" name="Usuário quer se cadastrar">
+      <bpmn:outgoing>Flow_Registration_Form</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Task_Registration_Form" name="Preencher Formulário">
+      <bpmn:incoming>Flow_Registration_Form</bpmn:incoming>
+      <bpmn:outgoing>Flow_Submit_Registration</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:serviceTask id="Task_Validate_Registration" name="Validar Dados">
+      <bpmn:incoming>Flow_Submit_Registration</bpmn:incoming>
+      <bpmn:outgoing>Flow_Validation_Success</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Validation_Error</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_Create_User_Account" name="Criar Conta">
+      <bpmn:incoming>Flow_Validation_Success</bpmn:incoming>
+      <bpmn:outgoing>Flow_Account_Created</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_Send_Welcome_Email" name="Enviar Email Boas-vindas">
+      <bpmn:incoming>Flow_Account_Created</bpmn:incoming>
+      <bpmn:outgoing>Flow_Registration_Complete</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="EndEvent_Registration_Success" name="Cadastro Concluído">
+      <bpmn:incoming>Flow_Registration_Complete</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <!-- Fluxos de erro -->
+    <bpmn:exclusiveGateway id="Gateway_Validation_Result" name="Validação OK?">
+      <bpmn:incoming>Flow_Validation_Error</bpmn:incoming>
+      <bpmn:outgoing>Flow_Fix_Errors</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Validation_Success</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:sequenceFlow id="Flow_Registration_Form" sourceRef="StartEvent_Registration" targetRef="Task_Registration_Form"/>
+    <bpmn:sequenceFlow id="Flow_Submit_Registration" sourceRef="Task_Registration_Form" targetRef="Task_Validate_Registration"/>
+    <bpmn:sequenceFlow id="Flow_Validation_Success" sourceRef="Task_Validate_Registration" targetRef="Task_Create_User_Account"/>
+    <bpmn:sequenceFlow id="Flow_Validation_Error" sourceRef="Task_Validate_Registration" targetRef="Gateway_Validation_Result"/>
+    <bpmn:sequenceFlow id="Flow_Account_Created" sourceRef="Task_Create_User_Account" targetRef="Task_Send_Welcome_Email"/>
+    <bpmn:sequenceFlow id="Flow_Registration_Complete" sourceRef="Task_Send_Welcome_Email" targetRef="EndEvent_Registration_Success"/>
+    <bpmn:sequenceFlow id="Flow_Fix_Errors" sourceRef="Gateway_Validation_Result" targetRef="Task_Registration_Form"/>
+  </bpmn:process>
+
+  <!-- Processo: Moderação de Ideias (Admin) -->
+  <bpmn:process id="Process_Idea_Moderation" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_Moderation" name="Nova ideia submetida">
+      <bpmn:outgoing>Flow_Review_Idea</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Task_Review_Idea" name="Revisar Ideia">
+      <bpmn:incoming>Flow_Review_Idea</bpmn:incoming>
+      <bpmn:outgoing>Flow_Moderation_Decision</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_Moderation_Decision" name="Aprovar?">
+      <bpmn:incoming>Flow_Moderation_Decision</bpmn:incoming>
+      <bpmn:outgoing>Flow_Approve_Idea</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Reject_Idea</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Request_Changes</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_Approve_Idea" name="Aprovar Ideia">
+      <bpmn:incoming>Flow_Approve_Idea</bpmn:incoming>
+      <bpmn:outgoing>Flow_Notify_Approval</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_Reject_Idea" name="Rejeitar Ideia">
+      <bpmn:incoming>Flow_Reject_Idea</bpmn:incoming>
+      <bpmn:outgoing>Flow_Notify_Rejection</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_Request_Changes" name="Solicitar Alterações">
+      <bpmn:incoming>Flow_Request_Changes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Notify_Changes</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_Send_Notification" name="Enviar Notificação">
+      <bpmn:incoming>Flow_Notify_Approval</bpmn:incoming>
+      <bpmn:incoming>Flow_Notify_Rejection</bpmn:incoming>
+      <bpmn:incoming>Flow_Notify_Changes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Moderation_Complete</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="EndEvent_Moderation_Done" name="Moderação Concluída">
+      <bpmn:incoming>Flow_Moderation_Complete</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_Review_Idea" sourceRef="StartEvent_Moderation" targetRef="Task_Review_Idea"/>
+    <bpmn:sequenceFlow id="Flow_Moderation_Decision" sourceRef="Task_Review_Idea" targetRef="Gateway_Moderation_Decision"/>
+    <bpmn:sequenceFlow id="Flow_Approve_Idea" sourceRef="Gateway_Moderation_Decision" targetRef="Task_Approve_Idea"/>
+    <bpmn:sequenceFlow id="Flow_Reject_Idea" sourceRef="Gateway_Moderation_Decision" targetRef="Task_Reject_Idea"/>
+    <bpmn:sequenceFlow id="Flow_Request_Changes" sourceRef="Gateway_Moderation_Decision" targetRef="Task_Request_Changes"/>
+    <bpmn:sequenceFlow id="Flow_Notify_Approval" sourceRef="Task_Approve_Idea" targetRef="Task_Send_Notification"/>
+    <bpmn:sequenceFlow id="Flow_Notify_Rejection" sourceRef="Task_Reject_Idea" targetRef="Task_Send_Notification"/>
+    <bpmn:sequenceFlow id="Flow_Notify_Changes" sourceRef="Task_Request_Changes" targetRef="Task_Send_Notification"/>
+    <bpmn:sequenceFlow id="Flow_Moderation_Complete" sourceRef="Task_Send_Notification" targetRef="EndEvent_Moderation_Done"/>
+  </bpmn:process>
+
+  <!-- Diagrama Visual -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Definitions_1">
+
+      <!-- Shapes e Edges serão definidos aqui para visualização -->
+      <!-- Esta seção define a posição visual dos elementos no diagrama -->
+
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</bpmn:definitions>
