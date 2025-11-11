@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro Concluído - Comunidade Ativa</title>
+    <meta name="description" content="Cadastro realizado com sucesso">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico">
+    
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/enhanced.css">
+    <link rel="stylesheet" href="/css/auth.css">
+    
+    <style>
+        .success-container {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #D1FAE5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+        
+        .success-icon i {
+            color: #10B981;
+            font-size: 2.5rem;
+        }
+        
+        .success-title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+        
+        .success-message {
+            color: #4B5563;
+            margin-bottom: 2rem;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+        
+        .btn-success {
+            background: #10B981;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-success:hover {
+            background: #0D9488;
+        }
+    </style>
+</head>
+<body class="auth-layout">
+    <!-- Conteúdo principal -->
+    <div class="auth-content">
+        <div class="auth-card animate-fade-in">
+            <div class="success-container">
+                <div class="success-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                
+                <h1 class="success-title">Cadastro concluído!</h1>
+                
+                <p class="success-message">
+                    Seu cadastro foi realizado com sucesso! Agora você pode acessar sua conta e começar a usar nossa plataforma.
+                </p>
+                
+                <a href="login.html" class="btn btn-success">
+                    Ir para o login
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

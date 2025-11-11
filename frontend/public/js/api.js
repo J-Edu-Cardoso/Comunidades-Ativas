@@ -1,25 +1,49 @@
 /**
  * Serviço de API - Gerencia todas as chamadas para a API RESTful
+ * @class ApiService
  */
 class ApiService {
-    constructor() {
-        // Configuração inicial
-        this.config = window.APP_CONFIG || {};
-        this.baseURL = this.config.API_BASE_URL || 'http://localhost:8000/api';
-        this.token = localStorage.getItem(this.config.AUTH?.TOKEN_KEY || 'auth_token');
-        this.refreshToken = localStorage.getItem(this.config.AUTH?.REFRESH_TOKEN_KEY || 'refresh_token');
-        this.tokenExpiry = localStorage.getItem(this.config.AUTH?.TOKEN_EXPIRY_KEY || 'token_expiry');
-        
-        // Configuração de logs
-        this.debug = this.config.DEBUG || false;
-        this.log('🔧 Inicializando serviço de API');
-        this.log(`🌐 Ambiente: ${this.config.ENV || 'desconhecido'}`);
-        this.log(`🔗 URL Base: ${this.baseURL}`);
-        this.log(`🔑 Token: ${this.token ? 'presente' : 'não encontrado'}`);
-        
-        // Configurar interceptadores
-        this.setupInterceptors();
+  /**
+   * Cria uma instância do serviço de API
+   */
+  constructor() {
+    // Configuração inicial
+    this.config = window.APP_CONFIG || {};
+    this.baseURL = this.config.API_BASE_URL || 'http://localhost:8000/api';
+    this.token = null;
+    this.refreshToken = null;
+    this.isRefreshing = false;
+    this.failedQueue = [];
+    this.debug = this.config.DEBUG || false;
+    this.initialized = false;
+    
+    // Inicialização básica
+    this.initialize();
+  }
+  
+  /**
+   * Inicializa o serviço
+   */
+  initialize() {
+    try {
+      this.token = this.getStoredToken();
+      this.refreshToken = this.getStoredRefreshToken();
+      
+      this.log('🔧 Inicializando serviço de API');
+      this.log(`🌐 Ambiente: ${this.config.ENV || 'desconhecido'}`);
+      this.log(`🔗 URL Base: ${this.baseURL}`);
+      this.log(`🔑 Token: ${this.token ? 'presente' : 'não encontrado'}`);
+      
+      // Configurar interceptadores
+      this.setupInterceptors();
+      
+      this.initialized = true;
+      console.log('✅ API Service inicializado com sucesso');
+    } catch (error) {
+      console.error('❌ Erro ao inicializar API Service:', error);
+      throw error;
     }
+  }
     
     // Método para logs condicionais
     log(...args) {
@@ -224,56 +248,43 @@ class ApiService {
             config.body = JSON.stringify(config.body);
         }
         
+        // Aplicar interceptador de requisição
+        let requestConfig;
         try {
-            // Aplicar interceptador de requisição
-            const requestConfig = this.requestInterceptor({ ...config, url }) || config;
-            
-            const response = await fetch(url, requestConfig);
-            let data;
-            
-            // Tentar fazer parse da resposta como JSON
-            try {
-                data = await response.json();
-            } catch (e) {
-                data = await response.text();
-            }
-            
-            // Verificar se a resposta foi bem-sucedida
-            if (!response.ok) {
-                const error = new Error(data.message || 'Erro na requisição');
-                error.response = { status: response.status, data };
-                throw error;
-            }
-            
-            // Aplicar interceptador de resposta
-            const processedResponse = this.responseInterceptor({
-                data,
-                status: response.status,
-                statusText: response.statusText,
-                headers: response.headers,
-                config: requestConfig
-            });
-            
-        };
-
+            requestConfig = this.requestInterceptor({ ...config, url }) || config;
+        } catch (error) {
+            console.error('Erro no interceptor de requisição:', error);
+            throw new Error('Falha ao processar a requisição');
+        }
+        
+        // Log da requisição
         console.log('🌐 Fazendo requisição:', {
             url,
-            method: config.method,
-            headers: config.headers,
-            hasBody: !!config.body,
-            body: config.body ? (config.body instanceof FormData ? '[FormData]' : config.body) : undefined
+            method: requestConfig.method,
+            headers: requestConfig.headers,
+            hasBody: !!requestConfig.body,
+            body: requestConfig.body ? (requestConfig.body instanceof FormData ? '[FormData]' : requestConfig.body) : undefined
         });
 
         try {
-            const response = await fetch(url, config);
+            const response = await fetch(url, requestConfig);
             const responseText = await response.text();
             
-            console.log('📥 Resposta:', {
+            // Log da resposta
+            const responseLog = {
                 status: response.status,
                 statusText: response.statusText,
-                headers: Object.fromEntries(response.headers.entries()),
-                body: responseText
-            });
+                headers: Object.fromEntries(response.headers.entries())
+            };
+            
+            // Não logar o corpo da resposta se for muito grande
+            if (responseText.length < 1000) {
+                responseLog.body = responseText;
+            } else {
+                responseLog.body = '[Dados muito grandes para exibição]';
+            }
+            
+            console.log('📥 Resposta:', responseLog);
 
             // Se não estiver autenticado, redirecionar para login
             if (response.status === 401) {
@@ -290,6 +301,22 @@ class ApiService {
             } catch (e) {
                 console.error('Erro ao fazer parse da resposta JSON:', e);
                 throw new Error('Resposta inválida do servidor');
+            }
+
+            // Aplicar interceptador de resposta
+            try {
+                const processedResponse = this.responseInterceptor({
+                    data: responseData,
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers,
+                    config: requestConfig
+                });
+                
+                return processedResponse.data || responseData;
+            } catch (error) {
+                console.error('Erro no interceptor de resposta:', error);
+                throw error;
             }
 
             if (!response.ok) {

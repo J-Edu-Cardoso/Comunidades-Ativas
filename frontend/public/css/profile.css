@@ -497,6 +497,142 @@
     margin-right: auto;
 }
 
+/* Modal de Corte de Imagem */
+.crop-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.crop-container {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.crop-container h3 {
+    color: var(--primary);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.crop-image-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto 1.5rem;
+    overflow: hidden;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+}
+
+.crop-image {
+    display: block;
+    max-width: 100%;
+    max-height: 60vh;
+    margin: 0 auto;
+}
+
+.crop-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 2px solid rgba(79, 70, 229, 0.7);
+    border-radius: 8px;
+    cursor: move;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+}
+
+.crop-resize-handle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--primary);
+    border: 2px solid white;
+    border-radius: 50%;
+    z-index: 2;
+}
+
+.crop-resize-handle.top-left {
+    top: -6px;
+    left: -6px;
+    cursor: nwse-resize;
+}
+
+.crop-resize-handle.top-right {
+    top: -6px;
+    right: -6px;
+    cursor: nesw-resize;
+}
+
+.crop-resize-handle.bottom-left {
+    bottom: -6px;
+    left: -6px;
+    cursor: nesw-resize;
+}
+
+.crop-resize-handle.bottom-right {
+    bottom: -6px;
+    right: -6px;
+    cursor: nwse-resize;
+}
+
+.crop-resize-line {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.5);
+    z-index: 1;
+}
+
+.crop-resize-line.top,
+.crop-resize-line.bottom {
+    height: 1px;
+    width: 100%;
+    left: 0;
+}
+
+.crop-resize-line.top {
+    top: 33.33%;
+}
+
+.crop-resize-line.bottom {
+    top: 66.66%;
+}
+
+.crop-resize-line.left,
+.crop-resize-line.right {
+    width: 1px;
+    height: 100%;
+    top: 0;
+}
+
+.crop-resize-line.left {
+    left: 33.33%;
+}
+
+.crop-resize-line.right {
+    left: 66.66%;
+}
+
+.crop-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .idea-header {
@@ -517,5 +653,13 @@
 
     .idea-actions {
         justify-content: center;
+    }
+    
+    .crop-buttons {
+        flex-direction: column;
+    }
+    
+    .crop-buttons .btn {
+        width: 100%;
     }
 }

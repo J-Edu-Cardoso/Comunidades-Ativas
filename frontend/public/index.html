@@ -18,6 +18,26 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Estilos para o botão de sair */
+        .logout-button {
+            color: #dc3545 !important;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-button:hover {
+            background-color: #f8d7da !important;
+        }
+        
+        .user-dropdown a:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* Garante que o menu do usuário esteja visível */
+        .user-menu {
+            display: block !important;
+        }
+    </style>
 
     <!-- API Configuration -->
     <script>
@@ -54,25 +74,25 @@
                     <li><a href="#features" class="nav-link">Recursos</a></li>
                     <li><a href="#ideas" class="nav-link">Ideias</a></li>
                     <li><a href="#contact" class="nav-link">Contato</a></li>
-                    <li><a href="login.html" class="nav-link">Login</a></li>
                 </ul>
                 
-                <!-- Botões de autenticação -->
+                <!-- Menu de autenticação -->
                 <div class="auth-buttons" id="authButtons">
-                    <a href="#" class="btn btn-outline" id="loginBtn" onclick="showLogin(); return false;">Entrar</a>
-                    <a href="#" class="btn btn-primary" id="registerBtn" onclick="showRegister(); return false;">Cadastrar</a>
+                    <!-- Botões de login/cadastro (visíveis quando não logado) -->
+                    <a href="login.html" class="btn btn-outline" id="loginBtn">Entrar</a>
+                    <a href="register.html" class="btn btn-primary" id="registerBtn">Cadastrar</a>
                     
                     <!-- Menu do usuário (visível quando logado) -->
                     <div class="user-menu" id="userMenu" style="display: none;">
                         <div class="user-info">
                             <img id="userAvatar" src="" alt="User" class="user-avatar">
-                            <span id="userName"></span>
+                            <span id="userName">Usuário</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <div class="user-dropdown">
-                            <a href="profile.html"><i class="fas fa-user"></i> Meu Perfil</a>
+                            <a href="Profile.html"><i class="fas fa-user"></i> Meu Perfil</a>
                             <a href="Profile.html#ideas"><i class="fas fa-lightbulb"></i> Minhas Ideias</a>
-                            <a href="login.html" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                            <a href="#" id="logoutBtn" class="logout-button"><i class="fas fa-sign-out-alt"></i> Sair</a>
                         </div>
                     </div>
                 </div>
@@ -326,75 +346,119 @@
     <!-- Google Sign-In -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-    <!-- Scripts principais (carregar em ordem) -->
-    <script src="/js/api.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/ideas.js"></script>
-    <script src="/js/categories.js"></script>
-    <script src="/js/ui.js"></script>
-    <script src="/js/mobile-menu.js"></script>
-    <script src="/js/app.js"></script>
+    <!-- Scripts -->
+    <!-- Biblioteca Axios para requisições HTTP -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     
-    <!-- Inicialização -->
+    <!-- Inicializador da aplicação -->
+    <script src="js/app-init.js"></script>
+    
+    <!-- Serviços principais -->
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/categories.js"></script>
+    <script src="js/ideas.js"></script>
+    <script src="js/comments.js"></script>
+    
+    <!-- Scripts da aplicação -->
+    <script src="js/main.js"></script>
+    
+    <!-- Registra os serviços no inicializador -->
     <script>
-        console.log('🚀 Inicializando aplicação...');
-        
-        // Função para inicializar a aplicação
-        function initializeApp() {
-            console.log('✅ Verificando serviços...');
+        // Registrar serviços quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar se o inicializador está disponível
+            if (typeof window.appInitializer === 'undefined') {
+                console.error('❌ Inicializador da aplicação não encontrado');
+                return;
+            }
             
-            // Configurar navegação
-            setupNavigation();
-            checkSavedUser();
+            // Registra o serviço de API
+            if (typeof ApiService !== 'undefined') {
+                window.appInitializer.registerService('api', () => {
+                    try {
+                        const api = new ApiService();
+                        window.api = api; // Mantém compatibilidade com código legado
+                        console.log('✅ API Service registrado com sucesso');
+                        return Promise.resolve(api);
+                    } catch (error) {
+                        console.error('❌ Erro ao registrar API Service:', error);
+                        return Promise.reject(error);
+                    }
+                });
+            }
             
-            // Função para tentar carregar os dados
-            const tryLoadData = (attempts = 0) => {
-                // Limitar o número de tentativas para evitar loop infinito
-                if (attempts > 10) {
-                    console.error('❌ Número máximo de tentativas atingido. Verifique se o serviço de ideias foi carregado corretamente.');
-                    return;
-                }
-                
-                // Verificar se o serviço de ideias está disponível
-                if (window.ideasService && typeof window.ideasService.loadIdeas === 'function') {
-                    console.log('✅ Serviço de ideias carregado com sucesso');
+            // Registra o serviço de autenticação
+            if (typeof AuthService !== 'undefined') {
+                window.appInitializer.registerService('auth', () => {
+                    try {
+                        const api = window.appInitializer.getService('api');
+                        const auth = new AuthService(api);
+                        window.auth = auth; // Mantém compatibilidade com código legado
+                        console.log('✅ Auth Service registrado com sucesso');
+                        return Promise.resolve(auth);
+                    } catch (error) {
+                        console.error('❌ Erro ao registrar Auth Service:', error);
+                        return Promise.reject(error);
+                    }
+                }, ['api']); // Depende do serviço de API
+            }
+            
+            // Registra o serviço de categorias
+            if (typeof CategoriesService !== 'undefined') {
+                window.appInitializer.registerService('categories', () => {
+                    try {
+                        const api = window.appInitializer.getService('api');
+                        const categories = new CategoriesService(api);
+                        window.categories = categories; // Mantém compatibilidade com código legado
+                        console.log('✅ Categories Service registrado com sucesso');
+                        return Promise.resolve(categories);
+                    } catch (error) {
+                        console.error('❌ Erro ao registrar Categories Service:', error);
+                        return Promise.reject(error);
+                    }
+                }, ['api']); // Depende do serviço de API
+            }
+            
+            // Inicializa a aplicação
+            window.appInitializer.initializeAll()
+                .then(() => {
+                    console.log('🎉 Aplicação inicializada com sucesso!');
                     
-                    // Inicializar categorias
-                    if (window.categories && typeof window.categories.loadCategories === 'function') {
+                    // Carrega as categorias e ideias após a inicialização
+                    if (window.categories && window.ideasService) {
                         window.categories.loadCategories()
                             .then(() => {
-                                console.log('✅ Categorias carregadas');
-                                // Carregar ideias após as categorias
-                                return window.ideasService.loadIdeas();
-                            })
-                            .then(() => {
-                                console.log('✅ Ideias carregadas');
                                 // Carregar categorias para o filtro, se a função existir
                                 if (typeof loadCategoriesForFilter === 'function') {
                                     loadCategoriesForFilter();
                                 }
+                                return window.ideasService.loadIdeas();
                             })
                             .catch(error => {
-                                console.error('❌ Erro ao carregar dados:', error);
+                                console.error('❌ Erro ao carregar dados iniciais:', error);
+                                
+                                // Se houver erro ao carregar categorias, tenta carregar apenas as ideias
+                                if (window.ideasService) {
+                                    window.ideasService.loadIdeas().catch(err => {
+                                        console.error('❌ Erro ao carregar ideias:', err);
+                                    });
+                                }
                             });
-                    } else {
-                        console.warn('⚠️ Serviço de categorias não está disponível');
-                        // Tentar carregar apenas as ideias
+                    } else if (window.ideasService) {
+                        // Se não tiver o serviço de categorias, tenta carregar apenas as ideias
                         window.ideasService.loadIdeas().catch(error => {
                             console.error('❌ Erro ao carregar ideias:', error);
                         });
                     }
-                } else {
-                    console.warn(`⚠️ Tentativa ${attempts + 1}/10: Serviço de ideias ainda não está disponível, tentando novamente...`);
-                    // Tentar novamente após um curto atraso
-                    setTimeout(() => tryLoadData(attempts + 1), 1000);
-                }
-            };
-            
-            // Iniciar o processo de carregamento
-            tryLoadData();
-        }
-        
+                })
+                .catch(error => {
+                    console.error('❌ Erro ao inicializar a aplicação:', error);
+                });
+        });
+    </script>
+    
+    <script>
         // Funções auxiliares
         function setupNavigation() {
             // Navbar scroll effect
@@ -473,23 +537,10 @@
                 }
             } else {
                 // Usuário não logado
-                if (loginBtn) loginBtn.style.display = 'block';
-                if (registerBtn) registerBtn.style.display = 'block';
+                if (loginBtn) loginBtn.style.display = 'inline-block';
+                if (registerBtn) registerBtn.style.display = 'inline-block';
                 if (userMenu) userMenu.style.display = 'none';
             }
-        }
-
-        // Funções globais para navegação
-        function showLogin() {
-            const modal = document.getElementById('loginModal');
-            if (modal) modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
-
-        function showRegister() {
-            const modal = document.getElementById('registerModal');
-            if (modal) modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
         }
 
         function closeModal(modalId) {
@@ -500,13 +551,16 @@
             }
         }
         
-        // Inicializar quando o DOM estiver pronto
+        // Configura a navegação quando o DOM estiver pronto
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeApp);
+            document.addEventListener('DOMContentLoaded', setupNavigation);
         } else {
-            // DOM já está pronto, inicializar imediatamente
-            setTimeout(initializeApp, 0);
+            // DOM já está pronto, configurar navegação imediatamente
+            setTimeout(setupNavigation, 0);
         }
+        
+        // Verifica se há um usuário salvo
+        checkSavedUser();
     </script>
 </body>
 </html>

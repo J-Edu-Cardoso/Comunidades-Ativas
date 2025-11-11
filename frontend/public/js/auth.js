@@ -1,17 +1,60 @@
 /**
- * Authentication Service - Gerencia login, registro e sessão do usuário
+ * Serviço de Autenticação - Gerencia autenticação, registro e sessão do usuário
+ * @class AuthService
  */
 class AuthService {
-    constructor() {
-        this.initializeService();
-    }
+  /**
+   * Cria uma instância do serviço de autenticação
+   * @param {Object} api - Instância do serviço de API
+   */
+  constructor(api) {
+    this.api = api || window.api;
+    this.config = window.APP_CONFIG || {};
+    this.user = null;
+    this.isAuthenticated = false;
     
-    async initializeService() {
-        // Aguardar a API estar disponível
-        await this.waitForAPI();
-        this.api = window.api;
-        this.init();
+    // Inicializa o serviço
+    this.initialize();
+    
+    // Verifica autenticação ao carregar
+    this.checkAuthStatus();
+    
+    console.log('🔑 Serviço de autenticação inicializado');
+  }
+  
+  /**
+   * Inicializa o serviço
+   */
+  /**
+   * Carrega o usuário do armazenamento local
+   */
+  loadUserFromStorage() {
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        this.user = JSON.parse(userData);
+        this.isAuthenticated = true;
+        console.log('👤 Usuário carregado do armazenamento local');
+      }
+    } catch (error) {
+      console.error('Erro ao carregar usuário do armazenamento local:', error);
+      this.user = null;
+      this.isAuthenticated = false;
     }
+  }
+
+  initialize() {
+    // Tenta carregar o usuário do armazenamento local
+    this.loadUserFromStorage();
+    
+    // Configura os listeners de eventos
+    this.setupEventListeners();
+    
+    // Verifica se há um token válido
+    if (this.isTokenValid()) {
+      this.isAuthenticated = true;
+    }
+  }
     
     waitForAPI(maxAttempts = 10, interval = 100) {
         return new Promise((resolve, reject) => {

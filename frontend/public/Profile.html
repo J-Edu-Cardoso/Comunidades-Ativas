@@ -30,6 +30,20 @@
 
     <link rel="stylesheet" href="css/profile.css">
     <style>
+        /* Estilos para o botão de sair */
+        .logout-button {
+            color: #dc3545 !important;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-button:hover {
+            background-color: #f8d7da !important;
+        }
+        
+        .user-dropdown a:hover {
+            background-color: #f8f9fa;
+        }
+        
         /* Estilo simplificado para os botões de ação */
         .idea-actions {
             display: flex;
@@ -1233,7 +1247,20 @@
                 flex-direction: column;
             }
         }
-    </style>
+        
+        .logout-button {
+            color: #dc3545 !important;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-button:hover {
+            background-color: #f8d7da !important;
+        }
+        
+        .user-dropdown a:hover {
+            background-color: #f8f9fa;
+        }
+</style>
 </head>
 <body>
     <!-- Navigation -->
@@ -1261,19 +1288,16 @@
                 </ul>
                 
                 <div class="auth-buttons" id="authButtons">
-                    <a href="#" class="btn btn-outline" id="loginBtn" onclick="showLogin(); return false;">Entrar</a>
-                    <a href="#" class="btn btn-primary" id="registerBtn" onclick="showRegister(); return false;">Cadastrar</a>
-                    
-                    <div class="user-menu" id="userMenu" style="display: none;">
+                    <div class="user-menu" id="userMenu">
                         <div class="user-info">
                             <img id="userAvatar" src="" alt="User" class="user-avatar">
                             <span id="userName"></span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <div class="user-dropdown">
-                            <a href="profile.html"><i class="fas fa-user"></i> Meu Perfil</a>
-                            <a href="minhas-ideias.html"><i class="fas fa-lightbulb"></i> Minhas Ideias</a>
-                            <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                            <a href="Profile.html"><i class="fas fa-user"></i> Meu Perfil</a>
+                            <a href="Profile.html#ideas"><i class="fas fa-lightbulb"></i> Minhas Ideias</a>
+                            <a href="#" id="logoutBtn" class="logout-button"><i class="fas fa-sign-out-alt"></i> Sair</a>
                         </div>
                     </div>
                 </div>
@@ -1489,11 +1513,11 @@
                 <div class="footer-links">
                     <h3>Links Rápidos</h3>
                     <ul>
-                        <li><a href="#home">Início</a></li>
-                        <li><a href="#about">Sobre Nós</a></li>
-                        <li><a href="#features">Recursos</a></li>
-                        <li><a href="#ideas">Ideias</a></li>
-                        <li><a href="#contact">Contato</a></li>
+                        <li><a href="index.html#home">Início</a></li>
+                        <li><a href="index.html#about">Sobre Nós</a></li>
+                        <li><a href="index.html#features">Recursos</a></li>
+                        <li><a href="index.html#ideas">Ideias</a></li>
+                        <li><a href="index.html#contact">Contato</a></li>
                     </ul>
                 </div>
                 <div class="footer-newsletter">
@@ -2074,17 +2098,23 @@
             }
 
         function setupEventListeners() {
-            // Botão de logout
-            const logoutBtn = document.getElementById('profileLogoutBtn');
+            // Botão de logout no menu dropdown
+            const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
                     // Limpar localStorage
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
-
-                    // Redirecionar para index
+                    // Redirecionar para a página inicial
                     window.location.href = 'index.html';
                 });
+            }
+            
+            // Mostrar o menu do usuário
+            const userMenu = document.getElementById('userMenu');
+            if (userMenu) {
+                userMenu.style.display = 'block';
             }
 
             // Botão de editar perfil
@@ -2187,39 +2217,72 @@
         }
 
         function handleAvatarUpload(file) {
-            if (!file) return;
+            if (!file) {
+                console.log('❌ Nenhum arquivo selecionado');
+                return;
+            }
 
-            console.log('📸 Avatar upload started:', file.name, 'Size:', file.size);
+            console.log('📤 Iniciando upload do avatar:', {
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                lastModified: new Date(file.lastModified).toLocaleString()
+            });
 
             // Validar tipo de arquivo
-            if (!file.type.startsWith('image/')) {
-                alert('Por favor, selecione apenas arquivos de imagem (JPG, PNG, GIF)');
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!validTypes.includes(file.type.toLowerCase())) {
+                const errorMsg = '❌ Tipo de arquivo não suportado. Use JPG, PNG ou GIF.';
+                console.error(errorMsg, 'Tipo recebido:', file.type);
+                showToast(errorMsg, 'error');
                 return;
             }
 
             // Validar tamanho (máximo 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('A imagem deve ter no máximo 5MB');
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                const errorMsg = `❌ A imagem deve ter no máximo ${(maxSize / (1024 * 1024)).toFixed(1)}MB`;
+                console.error(errorMsg, 'Tamanho recebido:', (file.size / (1024 * 1024)).toFixed(2), 'MB');
+                showToast(errorMsg, 'error');
                 return;
             }
 
-            const reader = new FileReader();
-
-            reader.onload = function(e) {
-                console.log('📖 File loaded, opening crop modal');
-                // Abrir modal de cropping ao invés de aplicar diretamente
-                openCropModal(e.target.result);
+            // Criar uma URL de objeto para a imagem
+            const objectUrl = URL.createObjectURL(file);
+            
+            // Criar uma imagem para pré-carregar e verificar se é uma imagem válida
+            const img = new Image();
+            
+            img.onload = function() {
+                console.log('✅ Imagem carregada com sucesso', {
+                    width: img.width,
+                    height: img.height,
+                    naturalWidth: img.naturalWidth,
+                    naturalHeight: img.naturalHeight
+                });
+                
+                // Abrir o modal de recorte com a URL do objeto
+                openCropModal(objectUrl);
+                
+                // Liberar a URL do objeto quando não for mais necessária
+                img.onload = null;
+                img.onerror = null;
+                // Não liberar a URL aqui, pois será usada no modal
             };
-
-            reader.onerror = function() {
-                alert('Erro ao carregar a imagem. Tente novamente.');
+            
+            img.onerror = function(error) {
+                console.error('❌ Erro ao carregar a imagem:', error);
+                showToast('Erro ao carregar a imagem. Por favor, tente novamente.', 'error');
+                // Liberar a URL do objeto em caso de erro
+                URL.revokeObjectURL(objectUrl);
             };
-
-            reader.readAsDataURL(file);
+            
+            // Iniciar o carregamento da imagem
+            img.src = objectUrl;
         }
 
         function openCropModal(imageSrc) {
-            console.log('🎯 Opening crop modal');
+            console.log('🎯 Abrindo modal de recorte');
             const modal = document.getElementById('cropModal');
             const cropImage = document.getElementById('cropImage');
             const cropOverlay = document.getElementById('cropOverlay');
@@ -2232,39 +2295,75 @@
             document.onmouseup = null;
             document.ontouchend = null;
 
-            // Configurar imagem no modal
-            cropImage.src = imageSrc;
-
-            // Mostrar modal
-            modal.style.display = 'flex';
+            // Criar uma nova imagem para garantir que não haja problemas de cache
+            const img = new Image();
+            
+            // Configurar o manipulador de carregamento antes de definir o src
+            img.onload = function() {
+                console.log('🖼️ Imagem carregada no modal de recorte');
+                // Usar o objeto de imagem criado para evitar problemas de CORS
+                cropImage.src = this.src;
+                
+                // Mostrar o modal após a imagem ser carregada
+                modal.style.display = 'flex';
+                
+                // Configurar interação de recorte
+                setupCropInteraction(cropImage, cropOverlay);
+            };
+            
+            img.onerror = function(error) {
+                console.error('❌ Erro ao carregar a imagem:', error);
+                showToast('Erro ao carregar a imagem. Por favor, tente novamente.', 'error');
+                return;
+            };
+            
+            // Definir a fonte da imagem (pode ser uma URL de dados ou um blob)
+            img.src = imageSrc;
 
             // Fechar modal clicando fora
             modal.onclick = function(e) {
                 if (e.target === modal) {
                     modal.style.display = 'none';
+                    // Limpar a URL do objeto se for uma URL de objeto (blob:)
+                    if (imageSrc && typeof imageSrc === 'string' && imageSrc.startsWith('blob:')) {
+                        URL.revokeObjectURL(imageSrc);
+                        console.log('🗑️ URL do objeto liberada');
+                    }
                 }
             };
 
-            // Configurar eventos quando a imagem carregar
+            // Configurar eventos quando a imagem carregar diretamente no cropImage (backup)
             cropImage.onload = function() {
-                console.log('🖼️ Crop image loaded, setting up interaction');
+                console.log('🖼️ Crop image carregada diretamente');
+                if (modal.style.display !== 'flex') {
+                    modal.style.display = 'flex';
+                }
                 setupCropInteraction(cropImage, cropOverlay);
             };
 
             // Botão cancelar
             document.getElementById('cropCancel').onclick = function() {
                 modal.style.display = 'none';
+                // Limpar a fonte da imagem para evitar vazamento de memória
+                cropImage.src = '';
             };
 
-            // Botão reset (corrigido para funcionar)
+            // Botão reset
             document.getElementById('cropReset').onclick = function() {
                 resetCrop();
             };
 
-            // Botão aplicar - ADICIONADO
+            // Botão aplicar
             document.getElementById('cropApply').onclick = function() {
                 applyCrop();
             };
+            
+            // Forçar redesenho para garantir que a imagem seja exibida
+            setTimeout(() => {
+                if (cropImage.complete) {
+                    setupCropInteraction(cropImage, cropOverlay);
+                }
+            }, 100);
         }
 
         function setupCropInteraction(cropImage, cropOverlay) {
@@ -2546,43 +2645,47 @@
             applyButton.textContent = 'Processando...';
 
             try {
-                // Calcular posição relativa na imagem original
-                const containerRect = cropImage.parentElement.getBoundingClientRect();
-                const imageRect = cropImage.getBoundingClientRect();
-                const overlayRect = cropOverlay.getBoundingClientRect();
-
-                // Verificar se overlay está dentro da imagem
-                if (overlayRect.left < imageRect.left ||
-                    overlayRect.right > imageRect.right ||
-                    overlayRect.top < imageRect.top ||
-                    overlayRect.bottom > imageRect.bottom) {
-                    alert('Por favor, posicione a área de corte dentro da imagem');
-                    return;
+                // Verificar se a imagem foi carregada corretamente
+                if (cropImage.naturalWidth === 0 || cropImage.naturalHeight === 0) {
+                    throw new Error('Imagem não carregada corretamente');
                 }
 
-                // Calcular posição relativa na imagem
-                const scaleX = cropImage.naturalWidth / imageRect.width;
-                const scaleY = cropImage.naturalHeight / imageRect.height;
-
-                const cropX = (overlayRect.left - imageRect.left) * scaleX;
-                const cropY = (overlayRect.top - imageRect.top) * scaleY;
-                const cropSize = overlayRect.width * scaleX; // Usar tamanho dinâmico do overlay
+                // Obter posição e tamanho da área de corte
+                const rect = cropOverlay.getBoundingClientRect();
+                const container = cropImage.parentElement;
+                
+                if (!container) {
+                    throw new Error('Container da imagem não encontrado');
+                }
+                
+                const containerRect = container.getBoundingClientRect();
+                
+                // Calcular posição relativa à imagem
+                const scaleX = cropImage.naturalWidth / cropImage.width;
+                const scaleY = cropImage.naturalHeight / cropImage.height;
+                
+                const cropX = Math.max(0, (rect.left - containerRect.left) * scaleX);
+                const cropY = Math.max(0, (rect.top - containerRect.top) * scaleY);
+                const cropSize = Math.min(rect.width * scaleX, cropImage.naturalWidth - cropX);
 
                 // Verificar se cropSize é válido
                 if (cropSize <= 0 || !isFinite(cropSize)) {
-                    alert('Erro no processamento da imagem. Tente novamente.');
-                    return;
+                    throw new Error('Tamanho de corte inválido');
                 }
 
                 // Verificar se a área de corte está dentro da imagem
-                if (cropX < 0 || cropY < 0 || cropX + cropSize > cropImage.naturalWidth || cropY + cropSize > cropImage.naturalHeight) {
-                    alert('Por favor, posicione a área de corte dentro da imagem');
+                if (cropX + cropSize > cropImage.naturalWidth || cropY + cropSize > cropImage.naturalHeight) {
+                    showToast('Por favor, posicione a área de corte dentro da imagem', 'warning');
                     return;
                 }
 
                 // Criar canvas para o crop
                 const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                
+                if (!ctx) {
+                    throw new Error('Não foi possível obter o contexto 2D do canvas');
+                }
 
                 canvas.width = 200;
                 canvas.height = 200;
@@ -2594,39 +2697,75 @@
                     0, 0, 200, 200 // área de destino no canvas (sempre 200x200 para avatar)
                 );
 
+                // Verificar se a imagem foi desenhada corretamente
+                try {
+                    const imageData = ctx.getImageData(0, 0, 1, 1).data;
+                    if (!imageData || imageData.length < 4) {
+                        throw new Error('Falha ao processar a imagem');
+                    }
+                } catch (e) {
+                    console.error('Erro ao verificar dados da imagem:', e);
+                    throw new Error('Falha ao processar os dados da imagem');
+                }
+
                 // Converter para base64
-                const croppedData = canvas.toDataURL('image/jpeg', 0.9);
+                let croppedData;
+                try {
+                    croppedData = canvas.toDataURL('image/jpeg', 0.9);
+                    if (!croppedData || croppedData.length < 100) { // Verificação básica se a string está vazia ou muito pequena
+                        throw new Error('Dados da imagem inválidos');
+                    }
+                } catch (e) {
+                    console.error('Erro ao converter para base64:', e);
+                    throw new Error('Falha ao converter a imagem');
+                }
 
                 // Atualizar preview
                 const profileAvatar = document.getElementById('profileAvatar');
                 const avatarPlaceholder = document.getElementById('avatarPlaceholder');
 
-                profileAvatar.src = croppedData;
-                profileAvatar.style.display = 'block';
-                avatarPlaceholder.style.display = 'none';
-
-                // Fechar modal
-                modal.style.display = 'none';
-
-                // Salvar no localStorage
-                updateUserAvatar(croppedData);
+                if (profileAvatar) {
+                    // Usar onload para garantir que a imagem foi carregada
+                    const img = new Image();
+                    img.onload = function() {
+                        if (profileAvatar) {
+                            profileAvatar.src = croppedData;
+                            profileAvatar.style.display = 'block';
+                            if (avatarPlaceholder) {
+                                avatarPlaceholder.style.display = 'none';
+                            }
+                            // Fechar modal
+                            modal.style.display = 'none';
+                            // Salvar no localStorage
+                            updateUserAvatar(croppedData);
+                        }
+                    };
+                    img.onerror = function() {
+                        throw new Error('Falha ao carregar a imagem cortada');
+                    };
+                    img.src = croppedData;
+                } else {
+                    throw new Error('Elemento de visualização do avatar não encontrado');
+                }
 
             } catch (error) {
-                console.error('Erro no crop:', error);
-                alert('Erro ao processar a imagem. Tente novamente.');
-            } finally {
-                // Reabilitar botão
+                console.error('Erro no corte da imagem:', error);
+                showToast(error.message || 'Erro ao processar a imagem. Tente novamente.', 'error');
+                // Reativar botão em caso de erro
                 applyButton.disabled = false;
                 applyButton.textContent = 'Aplicar';
             }
         }
 
         async function updateUserAvatar(avatarData) {
+            console.log('🔄 Iniciando atualização do avatar...');
             const savedUser = localStorage.getItem('user');
+            
             if (!savedUser) {
-                console.error('Nenhum usuário encontrado no localStorage');
+                const errorMsg = '❌ Nenhum usuário encontrado no localStorage';
+                console.error(errorMsg);
                 showToast('Erro: Usuário não autenticado', 'error');
-                return;
+                throw new Error(errorMsg);
             }
 
             try {
@@ -2634,16 +2773,20 @@
                 const token = localStorage.getItem('token');
                 
                 if (!token) {
-                    console.error('Token de autenticação não encontrado');
+                    const errorMsg = '❌ Token de autenticação não encontrado';
+                    console.error(errorMsg);
                     showToast('Erro: Sessão expirada. Faça login novamente.', 'error');
-                    return;
+                    throw new Error(errorMsg);
                 }
                 
                 // 1. Atualizar localmente primeiro para feedback imediato
+                console.log('🔄 Atualizando avatar localmente...');
                 const updatedUser = {
                     ...userData,
-                    avatar: avatarData
+                    avatar: avatarData,
+                    hasAvatar: true
                 };
+                
                 localStorage.setItem('user', JSON.stringify(updatedUser));
                 
                 // 2. Atualizar a interface
@@ -2652,35 +2795,74 @@
                 
                 // 3. Enviar para o servidor
                 try {
-                    console.log('Iniciando upload do avatar...');
+                    console.log('🔄 Convertendo imagem para blob...');
                     
-                    // Converter base64 para blob
-                    const imgResponse = await fetch(avatarData);
-                    if (!imgResponse.ok) throw new Error('Falha ao processar a imagem');
+                    // Extrair apenas os dados base64 (remover o cabeçalho data:image/...)
+                    const base64Data = avatarData.split(',')[1];
+                    const byteCharacters = atob(base64Data);
+                    const byteArrays = [];
                     
-                    const blob = await imgResponse.blob();
-                    const file = new File([blob], 'avatar.png', { type: 'image/png' });
+                    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+                        const slice = byteCharacters.slice(offset, offset + 512);
+                        const byteNumbers = new Array(slice.length);
+                        
+                        for (let i = 0; i < slice.length; i++) {
+                            byteNumbers[i] = slice.charCodeAt(i);
+                        }
+                        
+                        const byteArray = new Uint8Array(byteNumbers);
+                        byteArrays.push(byteArray);
+                    }
                     
-                    console.log('Enviando arquivo para o servidor...');
+                    const blob = new Blob(byteArrays, { type: 'image/jpeg' });
+                    const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+                    
+                    console.log('📤 Preparando para enviar arquivo para o servidor...');
+                    console.log('📄 Tamanho do arquivo:', (file.size / 1024).toFixed(2), 'KB');
                     
                     const formData = new FormData();
                     formData.append('avatar', file);
                     
-                    const uploadResponse = await fetch(`${window.API_BASE_URL}/users/${userData.id}/avatar`, {
+                    // Verificar se o FormData foi preenchido corretamente
+                    console.log('🔍 Verificando FormData...');
+                    for (let pair of formData.entries()) {
+                        console.log(pair[0] + ': ', pair[1]);
+                    }
+                    
+                    const apiUrl = `${window.API_BASE_URL}/users/${userData.id}/avatar`;
+                    console.log('🌐 Enviando para:', apiUrl);
+                    
+                    const uploadResponse = await fetch(apiUrl, {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${token}`
+                            // Não definir Content-Type, o navegador irá definir automaticamente com o boundary
                         },
                         body: formData
                     });
                     
+                    console.log('📥 Resposta recebida. Status:', uploadResponse.status);
+                    
                     if (!uploadResponse.ok) {
-                        const error = await uploadResponse.json();
-                        throw new Error(error.message || 'Falha ao enviar avatar');
+                        let errorMessage = 'Falha ao enviar avatar';
+                        try {
+                            const errorData = await uploadResponse.json();
+                            console.error('Detalhes do erro:', errorData);
+                            errorMessage = errorData.message || errorMessage;
+                        } catch (e) {
+                            console.error('Erro ao processar resposta de erro:', e);
+                        }
+                        throw new Error(errorMessage);
                     }
                     
-                    const result = await uploadResponse.json();
-                    console.log('Resposta do servidor:', result);
+                    let result;
+                    try {
+                        result = await uploadResponse.json();
+                        console.log('✅ Resposta do servidor:', result);
+                    } catch (e) {
+                        console.warn('⚠️ Não foi possível analisar a resposta JSON:', e);
+                        result = {};
+                    }
                     
                     if (result && result.avatar) {
                         // Atualizar com a URL do servidor
@@ -2688,21 +2870,25 @@
                         localStorage.setItem('user', JSON.stringify(updatedUser));
                         updateNavigationAvatar();
                         showToast('Avatar atualizado com sucesso!', 'success');
-                        console.log('Avatar atualizado com sucesso:', result.avatar);
+                        console.log('🎉 Avatar atualizado com sucesso!');
                         
                         // Forçar recarregamento do perfil para garantir que tudo está sincronizado
                         loadUserProfile();
+                        return result.avatar;
                     } else {
                         throw new Error('URL do avatar não retornada pelo servidor');
                     }
                 } catch (apiError) {
-                    console.error('Erro ao enviar avatar para o servidor:', apiError);
+                    console.error('❌ Erro ao enviar avatar para o servidor:', apiError);
                     // Manter a versão local, mas informar o usuário
-                    showToast('Erro ao salvar no servidor. Avatar salvo apenas localmente.', 'warning');
+                    showToast('Atenção: ' + (apiError.message || 'Erro ao salvar no servidor. Alterações salvas apenas localmente.'), 'warning');
+                    return null;
                 }
             } catch (error) {
-                console.error('Erro ao processar o avatar:', error);
-                showToast('Erro ao processar o avatar: ' + (error.message || 'Erro desconhecido'), 'error');
+                const errorMsg = '❌ Erro ao processar o avatar: ' + (error.message || 'Erro desconhecido');
+                console.error(errorMsg, error);
+                showToast(errorMsg, 'error');
+                throw error; // Propagar o erro para quem chamou a função
             }
         }
 
@@ -3042,38 +3228,5 @@
     <!-- Mobile Menu Script -->
     <script src="js/app.js"></script>
     
-    <!-- Botão de teste temporário -->
-    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
-        <button onclick="testarAtualizacaoAvatar()" style="padding: 10px; background: #4f46e5; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            Testar Atualização de Avatar
-        </button>
-    </div>
-    
-    <script>
-        function testarAtualizacaoAvatar() {
-            console.log('🔍 Testando atualização de avatar...');
-            const savedUser = localStorage.getItem('user');
-            if (savedUser) {
-                try {
-                    const userData = JSON.parse(savedUser);
-                    console.log('👤 Dados atuais do usuário:', userData);
-                    
-                    // Disparar evento manualmente
-                    const event = new CustomEvent('avatarUpdated', {
-                        detail: { 
-                            avatar: userData.avatar, 
-                            name: userData.name 
-                        }
-                    });
-                    window.dispatchEvent(event);
-                    console.log('✅ Evento avatarUpdated disparado manualmente');
-                } catch (error) {
-                    console.error('❌ Erro ao testar atualização de avatar:', error);
-                }
-            } else {
-                console.log('ℹ️ Nenhum usuário encontrado no localStorage');
-            }
-        }
-    </script>
 </body>
 </html>

@@ -1,75 +1,449 @@
 /**
  * Main Application - Ponto de entrada da aplicação
+ * Gerencia a inicialização, autenticação e roteamento da aplicação
  */
 console.log('🔄 app.js carregado com sucesso!');
 
 class App {
+    // Propriedades estáticas
     static isInitialized = false;
+    static currentUser = null;
+    static config = window.APP_CONFIG || {};
+    
+    // Serviços da aplicação
     static services = {
-        api: { name: 'API', loaded: false },
-        auth: { name: 'Autenticação', loaded: false },
-        ideas: { name: 'Ideias', loaded: false },
-        categories: { name: 'Categorias', loaded: false }
+        api: { name: 'API', loaded: false, instance: null },
+        auth: { name: 'Autenticação', loaded: false, instance: null },
+        router: { name: 'Roteador', loaded: false, instance: null }
     };
+    
+    // Rotas protegidas (requerem autenticação)
+    static protectedRoutes = [
+        '/profile.html',
+        '/dashboard.html',
+        '/minhas-ideias.html'
+    ];
+    
+    // Rotas públicas (não requerem autenticação)
+    static publicRoutes = [
+        '/login.html',
+        '/register.html',
+        '/recuperar-senha.html'
+    ];
 
+    /**
+     * Inicializa a aplicação
+     */
     static async init() {
         // Evitar inicialização duplicada
         if (this.isInitialized) {
             console.log('ℹ️ Aplicação já foi inicializada');
-            return;
+            return true;
         }
 
         console.log('🚀 Iniciando Comunidade Ativa...');
         
         try {
-            // Verificar serviços essenciais com tentativas
-            const servicesReady = await this.checkEssentialServices(10, 200);
+            // Inicializar serviços essenciais
+            await this.initializeServices();
             
-            if (!servicesReady) {
-                console.warn('⚠️ Iniciando aplicação com alguns serviços indisponíveis');
-            }
-
-            // Inicializar a aplicação
-            await this.initializeApp();
+            // Configurar gerenciamento de autenticação
+            this.setupAuthHandlers();
             
-            // Verificar novamente os serviços após a inicialização
-            if (!servicesReady) {
-                await this.checkEssentialServices();
-            }
+            // Verificar autenticação atual
+            await this.checkAuthStatus();
+            
+            // Configurar roteamento
+            this.setupRouting();
             
             this.isInitialized = true;
             console.log('✅ Aplicação inicializada com sucesso!');
+            
+            // Disparar evento de inicialização
+            this.triggerEvent('app:initialized');
+            
+            return true;
         } catch (error) {
             console.error('❌ Erro durante a inicialização:', error);
+            this.showError('Erro ao inicializar a aplicação');
             throw error;
         }
     }
-
-    static async checkEssentialServices(maxRetries = 5, delay = 100) {
-        const essentialServices = ['api', 'auth'];
-        let missingServices = [];
-        
-        // Função para verificar se todos os serviços essenciais estão disponíveis
-        const checkServices = () => {
-            missingServices = essentialServices.filter(svc => !window[svc]);
-            return missingServices.length === 0;
-        };
-        
-        // Tenta verificar os serviços imediatamente
-        if (checkServices()) {
-            this.updateServicesStatus();
+    
+    /**
+     * Inicializa os serviços da aplicação
+     */
+    static async initializeServices() {
+        try {
+            console.log('🔧 Inicializando serviços...');
+            
+            // 1. Inicializar API
+            if (!this.services.api.loaded) {
+                this.services.api.instance = window.api || new ApiService();
+                window.api = this.services.api.instance;
+                this.services.api.loaded = true;
+                console.log('✅ API inicializada');
+            }
+            
+            // 2. Inicializar Autenticação
+            if (!this.services.auth.loaded && window.api) {
+                this.services.auth.instance = window.auth || new AuthService(window.api);
+                window.auth = this.services.auth.instance;
+                this.services.auth.loaded = true;
+                console.log('✅ Autenticação inicializada');
+            }
+            
+            // 3. Inicializar Roteador
+            if (!this.services.router.loaded) {
+                this.services.router.instance = window.router || this.setupRouter();
+                window.router = this.services.router.instance;
+                this.services.router.loaded = true;
+                console.log('✅ Roteador inicializado');
+            }
+            
             return true;
+        } catch (error) {
+            console.error('❌ Erro ao inicializar serviços:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * Configura os manipuladores de autenticação
+     */
+    static setupAuthHandlers() {
+        if (!this.services.auth.loaded) return;
+        
+        // Ouvir eventos de autenticação
+        document.addEventListener('auth:login', (e) => {
+            this.currentUser = e.detail.user;
+            this.updateUIForAuthState(true);
+            this.redirectAfterLogin();
+        });
+        
+        document.addEventListener('auth:logout', () => {
+            this.currentUser = null;
+            this.updateUIForAuthState(false);
+            this.redirectToLogin();
+        });
+        
+        document.addEventListener('auth:error', (e) => {
+            console.error('Erro de autenticação:', e.detail.error);
+            this.showError('Erro de autenticação. Tente novamente.');
+        });
+    }
+    
+    /**
+     * Verifica o status de autenticação
+     */
+    static async checkAuthStatus() {
+        try {
+            if (!this.services.auth.loaded) return false;
+            
+            const isAuthenticated = await this.services.auth.instance.isAuthenticated();
+            
+            if (isAuthenticated) {
+                this.currentUser = await this.services.auth.instance.getCurrentUser();
+                this.updateUIForAuthState(true);
+                return true;
+            } else {
+                this.updateUIForAuthState(false);
+                return false;
+            }
+        } catch (error) {
+            console.error('Erro ao verificar autenticação:', error);
+            this.updateUIForAuthState(false);
+            return false;
+        }
+    }
+
+    /**
+     * Configura o roteamento da aplicação
+     */
+    static setupRouting() {
+        // Verificar rota atual
+        const currentPath = window.location.pathname;
+        const isProtectedRoute = this.protectedRoutes.some(route => currentPath.endsWith(route));
+        const isPublicRoute = this.publicRoutes.some(route => currentPath.endsWith(route));
+        
+        // Se for uma rota protegida e o usuário não estiver autenticado, redirecionar para login
+        if (isProtectedRoute && !this.currentUser) {
+            this.redirectToLogin(currentPath);
+            return;
         }
         
-        // Se não estiverem disponíveis, tenta novamente algumas vezes
-        for (let i = 0; i < maxRetries; i++) {
-            console.log(`🔄 Aguardando serviços essenciais... Tentativa ${i + 1}/${maxRetries}`);
-            await new Promise(resolve => setTimeout(resolve, delay));
+        // Se for uma rota pública e o usuário estiver autenticado, redirecionar para o painel
+        if ((isPublicRoute && this.currentUser) && !currentPath.endsWith('/profile.html')) {
+            this.redirectToDashboard();
+            return;
+        }
+        
+        // Atualizar a UI com base no estado de autenticação
+        this.updateUIForAuthState(!!this.currentUser);
+    }
+    
+    /**
+     * Atualiza a interface com base no estado de autenticação
+     * @param {boolean} isAuthenticated - Indica se o usuário está autenticado
+     */
+    static updateUIForAuthState(isAuthenticated) {
+        // Elementos que devem ser mostrados apenas para usuários autenticados
+        const authElements = document.querySelectorAll('[data-auth]');
+        const guestElements = document.querySelectorAll('[data-guest]');
+        
+        authElements.forEach(el => {
+            el.style.display = isAuthenticated ? '' : 'none';
+        });
+        
+        guestElements.forEach(el => {
+            el.style.display = isAuthenticated ? 'none' : '';
+        });
+        
+        // Atualizar informações do usuário se estiver autenticado
+        if (isAuthenticated && this.currentUser) {
+            this.updateUserUI(this.currentUser);
+        }
+    }
+    
+    /**
+     * Atualiza a interface com as informações do usuário
+     * @param {Object} user - Dados do usuário
+     */
+    static updateUserUI(user) {
+        // Atualizar avatar
+        const avatarElements = document.querySelectorAll('[data-user-avatar]');
+        if (user.avatar) {
+            avatarElements.forEach(el => {
+                el.src = user.avatar;
+                el.alt = user.name || 'Usuário';
+            });
+        }
+        
+        // Atualizar nome do usuário
+        const nameElements = document.querySelectorAll('[data-user-name]');
+        if (user.name) {
+            nameElements.forEach(el => {
+                el.textContent = user.name;
+            });
+        }
+        
+        // Atualizar email do usuário
+        const emailElements = document.querySelectorAll('[data-user-email]');
+        if (user.email) {
+            emailElements.forEach(el => {
+                el.textContent = user.email;
+                if (el.tagName === 'A') {
+                    el.href = `mailto:${user.email}`;
+                }
+            });
+        }
+    }
+    
+    /**
+     * Redireciona para a página de login
+     * @param {string} [redirectTo] - URL para redirecionar após o login
+     */
+    static redirectToLogin(redirectTo) {
+        const loginUrl = '/login.html';
+        if (redirectTo) {
+            window.location.href = `${loginUrl}?redirect=${encodeURIComponent(redirectTo)}`;
+        } else {
+            window.location.href = loginUrl;
+        }
+    }
+    
+    /**
+     * Redireciona para o painel após o login
+     */
+    static redirectToDashboard() {
+        window.location.href = '/profile.html';
+    }
+    
+    /**
+     * Redireciona após o login com base na URL de redirecionamento
+     */
+    static redirectAfterLogin() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectTo = urlParams.get('redirect');
+        
+        if (redirectTo) {
+            window.location.href = decodeURIComponent(redirectTo);
+        } else {
+            this.redirectToDashboard();
+        }
+    }
+    
+    /**
+     * Exibe uma mensagem de erro para o usuário
+     * @param {string} message - Mensagem de erro
+     * @param {HTMLElement} [container] - Container onde a mensagem será exibida
+     */
+    static showError(message, container) {
+        console.error('Erro:', message);
+        
+        // Se não for especificado um container, tenta encontrar um padrão
+        if (!container) {
+            container = document.getElementById('error-messages') || 
+                       document.querySelector('.error-message') || 
+                       document.body;
+        }
+        
+        // Cria o elemento de erro se não existir
+        let errorElement = document.getElementById('app-error-message');
+        
+        if (!errorElement) {
+            errorElement = document.createElement('div');
+            errorElement.id = 'app-error-message';
+            errorElement.className = 'alert alert-danger';
+            errorElement.style.margin = '10px';
+            errorElement.style.padding = '10px';
+            errorElement.style.borderRadius = '4px';
+            errorElement.style.backgroundColor = '#f8d7da';
+            errorElement.style.color = '#721c24';
+            errorElement.style.border = '1px solid #f5c6cb';
             
-            if (checkServices()) {
-                this.updateServicesStatus();
-                return true;
+            // Insere no início do container
+            if (container.firstChild) {
+                container.insertBefore(errorElement, container.firstChild);
+            } else {
+                container.appendChild(errorElement);
             }
+        }
+        
+        // Atualiza a mensagem
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+        
+        // Remove a mensagem após 5 segundos
+        setTimeout(() => {
+            errorElement.style.display = 'none';
+        }, 5000);
+    }
+    
+    /**
+     * Dispara um evento personalizado
+     * @param {string} eventName - Nome do evento
+     * @param {Object} [detail] - Dados adicionais do evento
+     */
+    /**
+     * Dispara um evento personalizado
+     * @param {string} eventName - Nome do evento
+     * @param {Object} [detail] - Dados adicionais do evento
+     */
+    /**
+     * Dispara um evento personalizado
+     * @param {string} eventName - Nome do evento
+     * @param {Object} [detail] - Dados adicionais do evento
+     */
+    static triggerEvent(eventName, detail = {}) {
+        const event = new CustomEvent(eventName, { detail });
+        document.dispatchEvent(event);
+    }
+    
+    /**
+     * Verifica se os serviços essenciais estão disponíveis
+     * @param {number} [maxRetries=5] - Número máximo de tentativas
+     * @param {number} [delay=100] - Atraso entre tentativas em ms
+     * @returns {Promise<boolean>} True se todos os serviços estiverem disponíveis
+     */
+    static async checkEssentialServices(maxRetries = 5, delay = 100) {
+        const essentialServices = ['api', 'auth'];
+        let attempts = 0;
+        
+        return new Promise((resolve) => {
+            const checkServices = () => {
+                attempts++;
+                const missingServices = essentialServices.filter(svc => !window[svc]);
+                
+                if (missingServices.length === 0 || attempts >= maxRetries) {
+                    if (missingServices.length > 0) {
+                        console.warn(`⚠️ Serviços ausentes após ${attempts} tentativas:`, missingServices);
+                    }
+                    resolve(missingServices.length === 0);
+                    return;
+                }
+                
+                console.log(`⏳ Aguardando serviços... (tentativa ${attempts}/${maxRetries})`);
+                setTimeout(checkServices, delay);
+            };
+            
+            checkServices();
+        });
+    }
+    
+    /**
+     * Atualiza o status dos serviços na interface
+     */
+    static updateServicesStatus() {
+        Object.entries(this.services).forEach(([key, service]) => {
+            const statusElement = document.getElementById(`status-${key}`);
+            if (statusElement) {
+                statusElement.textContent = service.loaded ? '✅' : '❌';
+                statusElement.title = service.loaded ? 'Carregado' : 'Falha ao carregar';
+            }
+        });
+    }
+    
+    /**
+     * Configura o roteador da aplicação
+     * @returns {Object} Instância do roteador
+     */
+    static setupRouter() {
+        return {
+            navigate: (path) => {
+                window.history.pushState({}, '', path);
+                this.setupRouting();
+            },
+            getCurrentPath: () => window.location.pathname
+        };
+    }
+    
+    /**
+     * Verifica a autenticação e redireciona conforme necessário
+     */
+    static async checkAndHandleAuth() {
+        const currentPath = window.location.pathname;
+        const isPublicRoute = this.publicRoutes.some(route => currentPath.endsWith(route));
+        const isProtectedRoute = this.protectedRoutes.some(route => currentPath.endsWith(route));
+        
+        // Se for uma rota protegida e o usuário não estiver autenticado
+        if (isProtectedRoute && !this.currentUser) {
+            this.redirectToLogin(currentPath);
+            return false;
+        }
+        
+        // Se for uma rota pública e o usuário estiver autenticado
+        if (isPublicRoute && this.currentUser) {
+            this.redirectToDashboard();
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Inicializa os manipuladores de eventos globais
+     */
+    static setupGlobalEventHandlers() {
+        // Manipulador para links com data-navigate
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('[data-navigate]');
+            if (link) {
+                e.preventDefault();
+                const path = link.getAttribute('data-navigate');
+                this.services.router.instance.navigate(path);
+            }
+        });
+        
+        // Manipulador para o botão de logout
+        document.addEventListener('click', (e) => {
+            const logoutBtn = e.target.closest('[data-action="logout"]');
+            if (logoutBtn && this.services.auth.instance) {
+                e.preventDefault();
+                this.services.auth.instance.logout();
+            }
+        });
+    }
         }
         
         // Se chegou aqui, alguns serviços não foram carregados
